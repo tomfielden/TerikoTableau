@@ -1,0 +1,258 @@
+# 2020-10-19
+
+## This fails (too big)
+any-json IPS_BILLED_NVD_DATA_MigratedData.csv | jq '.[] | .MANUFACTURER_PRODUCT_CD' | head
+
+## These are convenient for viewing
+any-json nvd.csv
+any-json mfgr.csv
+
+## This works (Postgres) SQL
+psql teriko
+
+DROP TABLE IF EXISTS product_detail;
+CREATE TABLE product_detail (
+    BRAND VARCHAR(255), CLIENT_ID VARCHAR(50), CLIENT_NAME VARCHAR(255), COMPONENT VARCHAR(255), "DISTRIB#" VARCHAR(50),
+    DISTRIBUTOR VARCHAR(255), GPO_MEMBER_ID INTEGER, ITEM_UOM VARCHAR(50), LOB VARCHAR(50), MAJOR_CAT VARCHAR(50),
+    MFGR VARCHAR(50), "MFGR#" VARCHAR(50), MFGR_ID VARCHAR(50), MINOR_CAT VARCHAR(50), PARENT_MANUFACTURER_NAME VARCHAR(50),
+    "PC#" INTEGER, PC_STATE_CD VARCHAR(20), PCZIP VARCHAR(20), PERIOD_MONTH INTEGER, PERIOD_YR INTEGER,
+    PRODUCT_DESCRIPTION VARCHAR(255), PRODUCT_MASTER_ID INTEGER, SECTOR VARCHAR(50), SOLD_BY VARCHAR(50),
+    ITEM FLOAT, "Number of Records" INTEGER, PACK INTEGER, PURCHASES FLOAT, VOLUME FLOAT
+);
+
+COPY product_detail (
+    BRAND, CLIENT_ID, CLIENT_NAME, COMPONENT, "DISTRIB#", DISTRIBUTOR, GPO_MEMBER_ID, ITEM_UOM,
+    LOB, MAJOR_CAT, MFGR, "MFGR#", MFGR_ID, MINOR_CAT, PARENT_MANUFACTURER_NAME, "PC#", PC_STATE_CD,
+    PCZIP, PERIOD_MONTH, PERIOD_YR, PRODUCT_DESCRIPTION, PRODUCT_MASTER_ID, SECTOR, SOLD_BY, ITEM,
+    "Number of Records", PACK, PURCHASES, VOLUME
+)
+FROM '/Users/tomfielden/Downloads/IPSManufacturerData.csv'
+DELIMITER ','
+CSV HEADER;
+
+DROP TABLE IF EXISTS billed_nvd;
+
+CREATE TABLE billed_nvd (
+    BRAND_NAME VARCHAR(255), CALENDAR_MONTH VARCHAR(2), CALENDAR_YEAR VARCHAR(4), DISTRIBUTION_CENTER_ID VARCHAR(10),
+    DISTRIBUTION_CENTER_NAME VARCHAR(50), DISTRIBUTOR_ID VARCHAR(10), DISTRIBUTOR_NAME VARCHAR(50), FISCAL_MONTH INTEGER,
+    FISCAL_YEAR INTEGER, INCOME_PROVISION VARCHAR(50), IPS_MEMBER_ID VARCHAR(50), ITEM_SELLING_UOM VARCHAR(10),
+    ITEM_UOM VARCHAR(10), MAJOR_CATEGORY_CD VARCHAR(10), MAJOR_CATEGORY_DESC VARCHAR(50), MANUFACTURER_ID VARCHAR(10),
+    MANUFACTURER_NAME VARCHAR(50), MANUFACTURER_PRODUCT_CD VARCHAR(50), MINOR_CATEGORY_CD VARCHAR(10), MINOR_CATEGORY_DESC VARCHAR(50),
+    NVD_RATE_BASIS_TYPE VARCHAR(10), PC_ADDRESS VARCHAR(255), PC_CITY VARCHAR(50), PC_NAME VARCHAR(255),
+    PC_OPEN_DATE DATE, PC_SECTOR VARCHAR(50), PC_STATE VARCHAR(10), PKG_BASIS VARCHAR(10), PRODUCT_DESCRIPTION VARCHAR(255),
+    PROFIT_CENTER_CD VARCHAR(10), PURCH_CURRENCY_CD VARCHAR(10), REBATE_CURRENCY_CD VARCHAR(10), REBATE_ID VARCHAR(50),
+    REBATE_INVOICE_DATE DATE, UPC VARCHAR(50), WT_BASIS VARCHAR(10), ARA_PRODUCT_ID VARCHAR(10), BILLED_REBATE_AMT FLOAT,
+    BRAND_ID VARCHAR(10), CONTRACT_PRICE_BASIS VARCHAR(10), DIST_MARKDOWN_PCT FLOAT, ITEM_PACK_SIZE FLOAT, ITEM_SIZE FLOAT,
+    NVD_RATE FLOAT, REBATE_INVOICE_NUMBER VARCHAR(10), REBATEABLE_PURCH_AMT FLOAT, TOTAL_PKG_QUANTITY FLOAT, TOTAL_PURCH_AMT FLOAT,
+    TOTAL_WT_QUANTITY FLOAT
+);
+
+
+COPY billed_nvd (
+    BRAND_NAME,CALENDAR_MONTH,CALENDAR_YEAR,DISTRIBUTION_CENTER_ID,DISTRIBUTION_CENTER_NAME,DISTRIBUTOR_ID,
+    DISTRIBUTOR_NAME,FISCAL_MONTH,FISCAL_YEAR,INCOME_PROVISION,IPS_MEMBER_ID,ITEM_SELLING_UOM,ITEM_UOM,
+    MAJOR_CATEGORY_CD,MAJOR_CATEGORY_DESC,MANUFACTURER_ID,MANUFACTURER_NAME,MANUFACTURER_PRODUCT_CD,
+    MINOR_CATEGORY_CD,MINOR_CATEGORY_DESC,NVD_RATE_BASIS_TYPE,PC_ADDRESS,PC_CITY,PC_NAME,PC_OPEN_DATE,PC_SECTOR,PC_STATE,
+    PKG_BASIS,PRODUCT_DESCRIPTION,PROFIT_CENTER_CD,PURCH_CURRENCY_CD,REBATE_CURRENCY_CD,REBATE_ID,
+    REBATE_INVOICE_DATE,UPC,WT_BASIS,ARA_PRODUCT_ID,BILLED_REBATE_AMT,BRAND_ID,CONTRACT_PRICE_BASIS,DIST_MARKDOWN_PCT,
+    ITEM_PACK_SIZE,ITEM_SIZE,NVD_RATE,REBATE_INVOICE_NUMBER,REBATEABLE_PURCH_AMT,TOTAL_PKG_QUANTITY,TOTAL_PURCH_AMT,TOTAL_WT_QUANTITY
+)
+FROM '/Users/tomfielden/Downloads/IPS_BILLED_NVD_DATA_Migrated Data.csv'
+DELIMITER ','
+CSV HEADER;
+
+### 2020-10-20 ###
+Need Postgres 11, not 13 for Tableau.
+See: https://medium.com/@bitadj/completely-uninstall-and-reinstall-psql-on-osx-551390904b86
+
+brew services stop postgresql@11
+brew doctor
+brew update
+brew uninstall postgresql@11
+rm -rf /usr/local/var/postgres
+rm -rf .psql_history .psqlrc .psql.local .pgpass .psqlrc.local
+brew list
+brew update
+brew install postgresql@11
+createdb `whoami`
+createdb teriko
+psql teriko
+
+# For some reason, I was able to set the user/pass for postgres to 'tomfielden/glorka'. 
+
+### 2020-10-21 ###
+
+"Case match?"
+    IF     SUM([Cases (Product Detail)]) = SUM([IPS_BILLED_NVD_DATA].[Cases (NVD)]) THEN "Yes"
+    ELSEIF SUM([Cases (Product Detail)]) > SUM([IPS_BILLED_NVD_DATA].[Cases (NVD)]) THEN "No"
+    ELSEIF SUM([Cases (Product Detail)]) < SUM([IPS_BILLED_NVD_DATA].[Cases (NVD)]) THEN "No"
+    ELSE " "
+    END
+
+"Pd Match?"
+    IF     ATTR([PRODUCT_DESCRIPTION])  = ATTR([IPS_BILLED_NVD_DATA].[PRODUCT_DESCRIPTION]) THEN "Yes"
+    ELSEIF ATTR([PRODUCT_DESCRIPTION]) != ATTR([IPS_BILLED_NVD_DATA].[PRODUCT_DESCRIPTION]) THEN "No"
+    ELSE " "
+    END
+
+"Red flag (look into)"
+    IF [Cases match?] = "No" AND [Pd Match?] = "Yes" THEN "Non-flaged but bad data"
+    ELSEIF [Cases match?] = "No" AND [Pd Match?] = "No" THEN "FLAGGED"
+    ELSE " "
+    END
+
+### 2020-10-22 ############### --- Tableau Prep --- ###############
+
+## Hit an error while trying to process with Tableau Prep. It's probably the anti-virus software!
+https://kb.tableau.com/articles/issue/error-unable-to-materialize-temporary-table-joining-data-sources
+
+# #SKU
+
+TRIM([MFGR#])
+
+# ITEM_STR
+
+IF INT([ITEM]) = [ITEM] THEN
+   STR([ITEM])
+ELSE
+    IF ([ITEM] - INT(ITEM))*100 < 10 THEN
+        STR(INT([ITEM]))+'.0'+STR(ROUND(([ITEM] - INT(ITEM))*100))
+    ELSE
+        STR(INT([ITEM]))+'.'+ STR(ROUND(([ITEM]-INT([ITEM]))*100))
+    END
+END
+
+# Pack Size
+
+IF [ITEM_STR] = '0' OR ISNULL([ITEM_STR]) THEN
+    IF [PACK] = 0 OR ISNULL([PACK]) THEN
+        [ITEM_UOM]
+    ELSE
+        STR([PACK])+"/"+[ITEM_UOM]
+    END
+ELSE
+    IF [PACK] = 0 OR ISNULL([PACK]) THEN
+        [ITEM_STR]+" "+[ITEM_UOM]
+    ELSE
+        [ITEM_STR]+"/"+STR([PACK])+" "+[ITEM_UOM]
+    END
+END
+
+# Manufacturer
+
+IF ISNULL([Old]) THEN
+    [Manufacturer]
+ELSEIF ISNULL([New]) THEN
+    IF ISNULL([BRAND]) THEN
+        [MFGR_ID]
+    ELSE
+        [BRAND]
+    END
+ELSE
+    [New]
+END
+
+# Date
+
+DATE(DATEPARSE ( "MM/yyyy", [PERIOD_MONTH] + "/" + [PERIOD_YR] ))
+
+# Qtr
+
+"Q"+STR(INT((INT([PERIOD_MONTH])-1)/3)+1)+"-"+[PERIOD_YR]
+
+# SY-Half
+
+IF INT([PERIOD_MONTH]) <= 6 THEN
+    "2H-"+STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
+ELSE
+    "1H-"+[PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
+END
+
+# SY
+
+IF INT([PERIOD_MONTH]) <= 6 THEN
+    STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
+ELSE
+    [PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
+END
+
+# Year
+
+[PERIOD_YR]
+
+# Weight (LBS)
+
+If     [ITEM_UOM] = "LBS" THEN ROUND([PACK] * [ITEM])
+ELSEIF [ITEM_UOM] = "OZ"  THEN ROUND([PACK] * ([ITEM]/16))
+ELSEIF [ITEM_UOM] = "LB"  THEN ROUND([PACK] * [ITEM])
+ELSEIF [ITEM_UOM] = "OZS" THEN ROUND([PACK] * ([ITEM]/16))
+END
+
+
+#### Phase 2 ####
+
+For each (Man,#SKU), find the most common product description (PD) and apply that to all PD's in the group.
+
+1. Form a table with (Mam, #SKU, PD, Count(PD)) called "countPD1"
+2. Form the same table again, called "countPD2"
+3. Group by (Man, #SKU) the countPD2 table and select (Man, #SKU) and Max(countPD)
+
+# time_value.csv
+time,value
+A,122
+A,122
+B,121
+B,121
+B,111
+C,122
+C,111
+C,111
+C,132
+C,132
+
+DROP TABLE IF EXISTS time_value;
+CREATE TABLE time_value (
+    time VARCHAR(10),
+    value INTEGER
+);
+
+COPY time_value (time,value) FROM '/Users/tomfielden/junk/time_value.csv' DELIMITER ',' CSV HEADER;
+
+
+## Example from Internet. Doesn't quite work.
+
+SELECT MaxCountSub.time, CountSub.value
+FROM (
+        SELECT time_value.time, time_value.value, Count(time_value.value) AS CountOfValue
+        FROM time_value
+        GROUP BY time_value.time, time_value.value
+    ) As CountSub
+INNER JOIN 
+    (
+        SELECT dT.time, Max(CountOfValue) As MaxCountOfValue
+        FROM (
+            SELECT time_value.time, time_value.value, Count(time_value.value) AS CountOfValue
+            FROM time_value
+            GROUP BY time_value.time, time_value.value
+        ) As dT
+        GROUP BY dT.time
+    ) As MaxCountSub
+ON CountSub.time = MaxCountSub.time 
+AND CountSub.CountOfValue = MaxCountSub.MaxCountOfValue
+;
+
+
+## Update Product Description and Pack Size
+1. Rename PRODUCT_DESCRIPTION to "Unique PD"
+2. Rename "Pack Size" to "Unique Pack Size"
+3. Group By (Manufacturer, #SKU), find Max(Unique PD), Max(Unique Pack Size) as "Choose 1"
+4. Rename "Pack Size" to "Orig Pack Size"
+5. Join Table to "Choose 1" on Manufacturer and #SKU
+6. Remove #SKU-1
+7. Remove Manufacturer-1
+8. Product Description = IF ISNULL([#SKU]) or [#SKU] = "" THEN [PRODUCT_DESCRIPTION] ELSE [Unique PD] END
+9. Pack Size = IF ISNULL([#SKU]) or [#SKU] = "" THEN [Orig Pack Size] ELSE [Unique Pack Size] END
+10. Remove PRODUCT_DESCRIPTION
+11. Remove "Unique PD"
+12. Remove "Unique Pack Size"
+
