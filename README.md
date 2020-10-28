@@ -170,6 +170,7 @@ Renaming:
     * MFGR#                     -> #SKU (trimmed to remove extra spaces)
     * PERIOD_YEAR               -> Year
     * DISTRIBUTOR               -> Distributor House
+    * Capacity (Salesforce)     -> Student Count (int to string)
 
 Calculated Fields:
 
@@ -257,7 +258,47 @@ Calculated Fields:
     END
 ```
 
-    * 
+    * Distributor
+    Join "DISTRIBUTOR" to Excel.Distributor.Old to pick up new names (detailed in Excel)
+```
+    IF ISNULL([Old]) THEN
+        "* "+[DISTRIBUTOR]
+    ELSE
+        [New]
+    END
+```
+    Notice: When a name substiturion (Old to New) is not found, the original DISTRIBUTOR name is used, but is prefixed with an asterix so that missing values can be spotted quickly. The DISTRIBUTOR field is renamed to "Distributor House".
+
+    * Join "Salesforce/Salesforce Accounts Extract" on "IPS Member ID"
+        * First aggregate table.
+        * Group by "IPS Member ID"
+        * MAX of Student Count
+        * MAX of Name of Co-Op
+
+    * Inner Join on Manufacturer, #SKU
+        * MAX of Product Description
+        * MAX of Pack Size
+
+    * Pack Size
+    This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
+```
+    IF ISNULL([#SKU]) or [#SKU] = "" THEN
+        [Pack Size Orig]
+    ELSE
+        [Unique PS]
+    END
+```
+
+    * Product Description
+    Same effect as for "Pack Size", we choose the aggregated value unless #SKU is null/empty in which case we stick with the original value,
+```
+    IF ISNULL([#SKU]) or [#SKU] = "" THEN
+        [PRODUCT_DESCRIPTION]
+    ELSE
+        [Unique PD]
+    END
+```
+
 
 
 ### NVD_Teriko-1.0
