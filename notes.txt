@@ -256,3 +256,12 @@ AND CountSub.CountOfValue = MaxCountSub.MaxCountOfValue
 11. Remove "Unique PD"
 12. Remove "Unique Pack Size"
 
+### 2020/10/28 ###
+Tech Support for Temp Tables articles,
+
+# We sent this one to them!
+https://kb.tableau.com/articles/issue/error-unable-to-materialize-temporary-table-joining-data-sources
+
+# This is new. It says to upgrade version (old article. Not relevant) and turn of virus protection; same as above.
+https://community.tableau.com/s/question/0D54T00000C5PeU/unable-to-materialize-temporary-table-on-multidata-source
+
