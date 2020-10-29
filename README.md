@@ -341,6 +341,35 @@ Calculated Fields:
     DATE(DATEPARSE ( "MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR] ))
 ```
 
+*NOTE:*
+
+We will join Billed NVD with Product Details using the following keys,
+
+* MANUFACTURER_ID
+* MANUFACTURER_PRODUCT_CD
+* IPS_MEMBER_ID
+* CALENDAR_MONTH + CALENDAR_YEAR (date)
+
+We need to be aware that records in this table are keyed more finely.
+In particular,
+
+REBATEABLE_PURCH_AMT and TOTAL_PKG_QUANTITY are indexed by the above and also,
+
+* ITEM_PACK_SIZE + ITEM_UOM
+* FISCAL_MONTH + FISCAL_YEAR
+
+BILLED_REBATE_AMT is indexed all the above plus,
+
+* NVD_RATE, NVD_RATE_BASIS_TYPE, INCOME_PROVISION
+
+```
+If NVD_RATE_BASIS_TYPE = SPD Then
+    BILLED_REBATE_AMT = NVD_RATE * REBATEABLE_PURCH_AMT
+
+If NVD_RATE_BASIS_TYPE = PKG Then
+    BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
+```
+
 ### Details+NVD
 
 This workflow is a controlled join of the two tables constructed by the workflows above,
