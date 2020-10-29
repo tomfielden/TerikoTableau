@@ -303,8 +303,6 @@ Calculated Fields:
 
 ### NVD_Teriko-1.0
 
-CALENDAR_YEAR >= 2018
-
 Renaming:
 
     * IPS_MEMBER_ID                 -> IPS Member ID
@@ -338,7 +336,12 @@ Calculated Fields:
 
     * Date
 ```
-    DATE(DATEPARSE ( "MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR] ))
+    DATE(DATEPARSE ("MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR]))
+```
+
+    * FiscalDate
+```
+    DATE(DATEPARSE ("MM/yyyy", STR([FISCAL_MONTH]) + "/" + STR([FISCAL_YEAR])))
 ```
 
 *NOTE:*
