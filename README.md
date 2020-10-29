@@ -118,9 +118,9 @@ Else you can skip these steps. Their purpose is to pull in the local Excel mappi
 ### Monthly Steps
 Note: Be sure the Tableau Prep Builder application is closed and not running. Eases a server login issue.
 
-1. Open "Detail_Teriko-1.0.tflx", Flow -> Run All (~ 1 to 1.5 hours)
-2. Open "NVD_Teriko-1.0.tflx", Flow -> Run All (~ 8 minutes)
-3. Open "Details+NVD.tfl", Flow -> Run All (~ 1 hour)
+1. Open "Detail_Teriko-1.0.tflx",   Flow -> Run All (~ 1 to 1.5 hours)
+2. Open "NVD_Teriko-1.0.tflx",      Flow -> Run All (~ 7 to 10 minutes)
+3. Open "Details+NVD.tfl",          Flow -> Run All (~ 1 hour)
 
 Expect the total run time to be 2 hours 45 minutes assuming no delay in between steps.
 
@@ -153,9 +153,7 @@ The "Old" field is intended to join with the "IPS Product Details".DISTRIBUTOR f
 The "New" field contains substitute names for the given distributor. Please see the actual formula for specifics.
 
 
-### Detail_Teriko-1.0
-
-PERIOD_YEAR >= 2018
+### Detail_Teriko-1.0.tfl / Product Detail (Clean)
 
 Renaming:
 
@@ -301,7 +299,7 @@ Calculated Fields:
 
 
 
-### NVD_Teriko-1.0
+### NVD_Teriko-1.0.tfl / Billed NVD (Clean)
 
 Renaming:
 
@@ -373,19 +371,21 @@ If NVD_RATE_BASIS_TYPE = PKG Then
     BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
 ```
 
-### Details+NVD
+### Details+NVD.tfl / Product Detail + NVD (Clean)
+
+The purpose of this workflow is to selectively pick up (aggregated: see below) records from the "Billed NVD (Clean)" table and add fields, but not rows to the existing "Product Detail (Clean)" table.
 
 This workflow is a controlled join of the two tables constructed by the workflows above,
 
     * server: Teriko's Projects/Product Detail (Clean)
     * server: Teriko's Projects/Billed NVD (Clean)
 
-Renaming,
+Renaming of "Billed NVD (Clean)" fields,
 
     * PRODUCT_DESCRIPTION   -> Product Description (NVD)
     * TOTAL_PURCH_AMT       -> Purchase $'s (NVD)
     * TOTAL_WT_QUANTITY     -> Weight (LBS)(NVD)
-    * WT_BASIS              -> Weight Basis (NVD)
+    * Manufacturerer        -> Manufacturer (NVD)
 
 The join fields are,
 
@@ -399,17 +399,16 @@ Noticing that the above fields do not uniquely identify records in the Billed NV
 The aggregations are,
 
     * MAX of ARA_PRODUCT_ID
-    * SUM of BILLED_REBATE_AMT
-    * SUM of Cases (NVD)
     * MAX of Manufacturer (NVD)
-    * MEDIAN of NVD_RATE
-    * MAX of NVD_RATE_BASIS_TYPE
     * MAX of Product Description (NVD)
     * MAX of PRODUCT_CENTER_CD
-    * SUM of Purchase $'s (NVD)
     * MAX of REBATE_ID
+    * SUM of BILLED_REBATE_AMT
+    * SUM of Cases (NVD)
+    * SUM of Purchase $'s (NVD)
     * SUM of REBATEABLE_PURCH_AMT
     * SUM of Weight (LBS)(NVD)
-    * MAX of Weight Basis (NVD)
 
-
+*Note:*
+All of the fields and records of the "Product Details (Clean)" appear in the final result.
+Only the aggregation fields of the "Billed NVD" table will appear in the final result.
