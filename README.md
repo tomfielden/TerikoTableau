@@ -9,19 +9,16 @@ This README file is located in the "TerikoTableau" directory. This directory is 
 
 ### The "Prep Flows" Subdirectory
 
-There are several Tableau Prep Builder workflows in the "Prep Flows" subdirectory,
+There are two Tableau Prep Builder workflows in the "Prep Flows" subdirectory. They must be run in sequence
 
-* Detail_Teriko-1.0.tfl
-* NVD_Teriko-1.0.tfl
-* Details+NVD.tfl
+* Detail+NVD_Step-1.tfl
+* Detail+NVD_Step-2.tfl
 
-The "Detail_Teriko-1.0" amd "NVD_Teriko-1.0" workflows each have two files; ".tfl" and ".tflx" explained below.
-
-There is also an Excel file,
+The "Detail+NVD_Step-1.tfl" should not be run directly. Instead, open it and export it to "Detail+NVD_Step-1.tflx" and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the Excel file/workbook,
 
 * IPS_Product_Details.xls
 
-This Excel workbook contains two sheets/tables,
+The Excel workbook contains two sheets/tables,
 
 * Manufacturers
 * Distributors
@@ -68,31 +65,26 @@ Each of the three Prep Builder workflows consumes several tables and produces a 
 
 Here are the inputs and output tables for each workflow,
 
-### Detail_Teriko-1.0
+### Detail+NVD_Step-1.tfl
 
-Purpose: To preprocess the Product Detail data correcting several issues including manufacturer and distributor name substitutions.
+*Purpose:*
+
+To preprocess the "IPS Product Detail" and "IPS_BILLED_NVD_DATA" data correcting several issues including manufacturer and distributor name substitutions.
 
 Inputs,
+
 * server: default/IPS Product Detail
+* server: default/IPS_BILLED_NVD_DATA
 * server: Salesforce/Salesforce Accounts Extract
 * IPS_Product_Details.xls: Manufacturer
 * IPS_Product_Details.xls: Distributor
 
-Output,
+Outputs,
+
 * server: Teriko's Projects/Product Detail (Clean)
-
-### NVD_Teriko-1.0
-
-Purpose: To preprocess the Billed NVD data similarly to the Product Detail data so they match more accurately.
-
-Inputs,
-* server: default/IPS_BILLED_NVD_DATA
-* IPS_Product_Details.xls: Manufacturer
-
-Output,
 * server: Teriko's Projects/Billed NVD (Clean)
 
-### Details+NVD
+### Detail+NVD_Step-2.tfl
 
 Purpose: To perform the join of Product Detail and Billed NVD and pick up only the useful fields for speed and convenience.
 
@@ -110,21 +102,20 @@ Output,
 If you alter anything in the IPS_Product_Details.xls file (Manufacturer or Distributor mapping tables)
 Then you will need to first,
 
-1. Open "Details_Teriko-1.0.tfl", File -> Export to "Details_Teriko-1.0.tflx" (default, replace existing)
-2. Open "NVD_Teriko-1.0.tfl", File -> Export to "NVD_Teriko-1.0.tflx" (default, replace existing)
+1. Open "Detail+NVD_Step-1.tfl"
+2. File -> Export to "Detail+NVD_Step-1.tflx" (default, replace existing)
 
 Else you can skip these steps. Their purpose is to pull in the local Excel mapping data into the Prep Builder package (.tflx) file(s).
 
 ### Monthly Steps
 Note: Be sure the Tableau Prep Builder application is closed and not running. Eases a server login issue.
 
-1. Open "Detail_Teriko-1.0.tflx",   Flow -> Run All (~ 1 to 1.5 hours)
-2. Open "NVD_Teriko-1.0.tflx",      Flow -> Run All (~ 7 to 10 minutes)
-3. Open "Details+NVD.tfl",          Flow -> Run All (~ 1 hour)
+1. Open "Detail+NVD_Step-1.tfl"
+2. Flow -> Run All (~ 1 to 1.5 hours)
+3. Open "Detail+NVD_Step-2.tfl.tfl"
+4. Flow -> Run All (~ 30 minutes)
 
-Expect the total run time to be 2 hours 45 minutes assuming no delay in between steps.
-
-Note: There may be a way to publish flows to the server and have them automatically scheduled.
+*Note:* There is a way to publish flows to the server and have them automatically scheduled. Publication to the server requires another licence for Tableau Conductor
 
 ## Transformation Details
 
@@ -153,7 +144,7 @@ The "Old" field is intended to join with the "IPS Product Details".DISTRIBUTOR f
 The "New" field contains substitute names for the given distributor. Please see the actual formula for specifics.
 
 
-### Detail_Teriko-1.0.tfl / Product Detail (Clean)
+### Detail+NVD_Step-1.tfl, Part A
 
 Renaming:
 
@@ -299,7 +290,7 @@ Calculated Fields:
 
 
 
-### NVD_Teriko-1.0.tfl / Billed NVD (Clean)
+### Detail+NVD_Step-1.tfl, Part B
 
 Renaming:
 
@@ -371,11 +362,11 @@ If NVD_RATE_BASIS_TYPE = PKG Then
     BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
 ```
 
-### Details+NVD.tfl / Product Detail + NVD (Clean)
+### Detail+NVD_Step-2.tfl
 
-The purpose of this workflow is to selectively pick up (aggregated: see below) records from the "Billed NVD (Clean)" table and add fields, but not rows to the existing "Product Detail (Clean)" table.
+The purpose of this workflow is to merge the "Product Billed (Clean)" and "Billed NVD (clean)". 
 
-This workflow is a controlled join of the two tables constructed by the workflows above,
+Specifically we use the following source tables,
 
     * server: Teriko's Projects/Product Detail (Clean)
     * server: Teriko's Projects/Billed NVD (Clean)
@@ -396,7 +387,35 @@ The join fields are,
 
 Noticing that the above fields do not uniquely identify records in the Billed NVD table, the table needs to first be aggregated before joining on the above keys with the Product Detail table,
 
-The aggregations are,
+The aggregations for Product Detail are,
+
+    * MAX of BRAND
+    * MAX of Distributor
+    * MAX of Distributor House
+    * MAX of MAJOR_CAT
+    * MAX of MINOR_CAT
+    * MAX of Manufacturer
+    * MAX of Member Name
+    * MAX of Name of Co-Op
+    * MAX of Pack Size
+    * MAX of Pack Size Orig
+    * MAX of Parent Manufacturer
+    * MAX of PC#
+    * MAX of PCZIP
+    * MAX of Product Description
+    * MAX of Product Master ID
+    * MAX of Qtr
+    * MAX of SECTOR
+    * MAX of State
+    * MAX of Student Count
+    * MAX of SY
+    * MAX of SY-Half
+    * MAX of Year
+    * SUM of Cases (Product Detail)
+    * SUM of Purchase $'s
+    * SUM of Weight (LBS)
+
+The aggregations for Billed NVD are,
 
     * MAX of ARA_PRODUCT_ID
     * MAX of Manufacturer (NVD)
