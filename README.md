@@ -510,3 +510,15 @@ The second level aggregation is grouped by the same fields used by the join and 
     * SUM of Total Weight (LBS)(NVD)
     * SUM of BILLED_REBATE_AMT
 
+## Fields Explained
+
+### Product Detail (Clean)
+
+### Billed NVD (Clean)
+
+### Product Detail + NVD (Clean)
+
+| Column 1       | Column 2     | Column 3     |
+| :------------- | :----------: | -----------: |
+|  Cell Contents | More Stuff   | And Again    |
+| You Can Also   | Put Pipes In | Like this \| |
