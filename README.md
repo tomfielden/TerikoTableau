@@ -163,14 +163,20 @@ Renaming:
 
 Calculated Fields:
 
+    * Weight (LBS)
+
+```
+    If     [ITEM_UOM] = "LBS" THEN [PACK] * [ITEM]
+    ELSEIF [ITEM_UOM] = "LB"  THEN [PACK] * [ITEM]
+    ELSEIF [ITEM_UOM] = "OZ"  THEN [PACK] * [ITEM] / 16
+    ELSEIF [ITEM_UOM] = "OZS" THEN [PACK] * [ITEM] / 16
+    END
+```
+
     * Total Weight (LBS)
 
 ```
-    If     [ITEM_UOM] = "LBS" THEN [Cases] * [PACK] * [ITEM]
-    ELSEIF [ITEM_UOM] = "LB"  THEN [Cases] * [PACK] * [ITEM]
-    ELSEIF [ITEM_UOM] = "OZ"  THEN [Cases] * [PACK] * [ITEM] / 16
-    ELSEIF [ITEM_UOM] = "OZS" THEN [Cases] * [PACK] * [ITEM] / 16
-    END
+    [Cases] * [Weight (LBS)]
 ```
 
     * ITEM_STR
@@ -547,6 +553,6 @@ The second level aggregation is grouped by the same fields used by the join and 
 | Purchase $'s              | PD : Purchase $'s  | PD : PURCHASES  |   |
 | Purchase $'s (NVD)        | NVD : Purchase $'s  | NVD : TOTAL_PURCH_AMT  |   |
 | REBATEABLE_PURCH_AMT      | NVD : REBATEABLE_PURCH_AMT  | NVD : REBATEABLE_PURCH_AMT   |   |
-| Total Weight (LBS)        | PD : Total Weight (LBS)  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK<BR>PD : Cases  | (formula)  |
+| Total Weight (LBS)        | PD : Total Weight (LBS)  | PD : Cases<BR>PD : Weight (LBS)  | Cases * Weight (LBS) |
 | Total Weight (LBS)(NVD)   | NVD : Total Weight (LBS)  | NVD : TOTAL_WT_QUANTITY   |   |
-
+| Weight (LBS)              | PD : Total Weight (LBS)  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK<BR>  | (formula)  |
