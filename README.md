@@ -512,13 +512,48 @@ The second level aggregation is grouped by the same fields used by the join and 
 
 ## Fields Explained
 
-### Product Detail (Clean)
+| Product Detail + NVD (Clean) | IPS Product Detail = PD<BR>IPS_BILLED_NVD_DATA = NVD |  Product Detail (Clean) = PD<BR>Billed NVD (Clean) = NVD | Formula/Notes |
+| :------------------------ | :-------------------- | :---------------- | :------------ | ---: |
+| #SKU                      | PD.MFGR#                 | PD.#SKU  | trimmed to remove extra spaces  |
+| ARA_PRODUCT_ID            |   |   |
+| BRAND                     |   |   |
+| Date                      |   |   |
+| Distributor               |   |   |
+| Distributor House         |   |   |
+| FiscalDate                |   |   |
+| IPS Member ID             |   |   |
+| MAJOR_CAT                 |   |   |
+| Manufacturer              |   |   |
+| Manufacturer (NVD)        |   |   |
+| Member Name               |   |   |
+| MFGR_ID                   |   |   |
+| MINOR_CAT                 |   |   |
+| Name of Co-Op             |   |   |
+| Pack Size                 |   |   |
+| Pack Size Orig            |   |   |
+| Parent Manufacturer       |   |   |
+| PC#                       |   |   |
+| PC# (NVD)                 |   |   |
+| PCZIP                     |   |   |
+| Product Description       |   |   |
+| Product Description (NVD) |   |   |
+| Product Master ID         |   |   |
+| Qtr                       |   |   |
+| REBATE_ID                 |   |   |
+| REBATE_INVOICE_DATE       |   |   |
+| SECTOR                    |   |   |
+| State                     |   |   |
+| Student Count             |   |   |
+| SY                        |   |   |
+| SY-Half                   |   |   |
+| Year                      |   |   |
+| BILLED_REBATE_AMT         |   |   |
+| Case (NVD)                |   |   |
+| Case (Product Detail)     |   |   |
+| Purchase $'s              |   |   |
+| Purchase $'s (NVD)        |   |   |
+| REBATEABLE_PURCH_AMT      |   |   |
+| Total Weight (LBS)        |   |   |
+| Total Weight (LBS)(NVD)   |   |   |
+| Weight (LBS)              |   |   |
 
-### Billed NVD (Clean)
-
-### Product Detail + NVD (Clean)
-
-| Column 1       | Column 2     | Column 3     |
-| :------------- | :----------: | -----------: |
-|  Cell Contents | More Stuff   | And Again    |
-| You Can Also   | Put Pipes In | Like this \| |
