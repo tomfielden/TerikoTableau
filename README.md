@@ -111,9 +111,9 @@ Else you can skip these steps. Their purpose is to pull in the local Excel mappi
 Note: Be sure the Tableau Prep Builder application is closed and not running. Eases a server login issue.
 
 1. Open "Detail+NVD_Step-1.tflx"
-    * Flow -> Run All (~ 1 to 1.5 hours)
+    * Flow -> Run All (~ 1.5 hours)
 2. Open "Detail+NVD_Step-2.tfl"
-    * Flow -> Run All (~ 30 minutes)
+    * Flow -> Run All (~ 45 minutes)
 
 *Note:* There is a way to publish flows to the server and have them automatically scheduled. Publication to the server requires another licence for Tableau Conductor
 
@@ -436,6 +436,7 @@ Renaming of "Billed NVD (Clean)" fields,
     * Purchase $'s          -> Purchase $'s (NVD)
     * Total Weight (LBS)    -> Total Weight (LBS)(NVD)
     * Manufacturer          -> Manufacturer (NVD)
+    * PC#                   -> PC# (NVD)
 
 The join fields are,
 
@@ -474,7 +475,14 @@ The aggregations for Product Detail are,
     * SUM of Purchase $'s
     * SUM of Weight (LBS)
 
-The aggregations for Billed NVD are,
+The Billed NVS requires two levels of aggregation
+
+The first level aggregation is grouped by the above join fields as well as,
+
+    * Item UOM (NVD)
+    * FiscalDate
+
+The first level aggregations are,
 
     * MAX of ARA_PRODUCT_ID
     * MAX of Manufacturer (NVD)
@@ -482,9 +490,23 @@ The aggregations for Billed NVD are,
     * MAX of PRODUCT_CENTER_CD
     * MAX of REBATE_ID
     * MAX of REBATE_INVOICE_DATE
+    * MAX of Cases (NVD)
+    * MAX of Purchase $'s (NVD)
+    * MAX of REBATEABLE_PURCH_AMT
+    * MAX of Total Weight (LBS)(NVD)
     * SUM of BILLED_REBATE_AMT
+
+The second level aggregation is grouped by the same fields used by the join and the following aggregrations,
+
+    * MAX of ARA_PRODUCT_ID
+    * MAX of Manufacturer (NVD)
+    * MAX of Product Description (NVD)
+    * MAX of PRODUCT_CENTER_CD
+    * MAX of REBATE_ID
+    * MAX of REBATE_INVOICE_DATE
     * SUM of Cases (NVD)
     * SUM of Purchase $'s (NVD)
     * SUM of REBATEABLE_PURCH_AMT
-    * SUM of Weight (LBS)(NVD)
+    * SUM of Total Weight (LBS)(NVD)
+    * SUM of BILLED_REBATE_AMT
 
