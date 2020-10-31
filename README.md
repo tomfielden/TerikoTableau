@@ -512,48 +512,48 @@ The second level aggregation is grouped by the same fields used by the join and 
 
 ## Fields Explained
 
-| Product Detail + NVD (Clean) | IPS Product Detail = PD<BR>IPS_BILLED_NVD_DATA = NVD |  Product Detail (Clean) = PD<BR>Billed NVD (Clean) = NVD | Formula/Notes |
+| Product Detail + NVD (Clean) | Product Detail (Clean)<BR>Billed NVD (Clean) | IPS Product Detail<BR>IPS_BILLED_NVD_DATA | Notes |
 | :------------------------ | :-------------------- | :---------------- | :------------ |
-| #SKU                      | PD.MFGR#                 | PD.#SKU  | trimmed to remove extra spaces  |
-| ARA_PRODUCT_ID            |   |   |
-| BRAND                     |   |   |
-| Date                      |   |   |
-| Distributor               |   |   |
-| Distributor House         |   |   |
-| FiscalDate                |   |   |
-| IPS Member ID             |   |   |
-| MAJOR_CAT                 |   |   |
-| Manufacturer              |   |   |
-| Manufacturer (NVD)        |   |   |
-| Member Name               |   |   |
-| MFGR_ID                   |   |   |
-| MINOR_CAT                 |   |   |
-| Name of Co-Op             |   |   |
-| Pack Size                 |   |   |
-| Pack Size Orig            |   |   |
-| Parent Manufacturer       |   |   |
-| PC#                       |   |   |
-| PC# (NVD)                 |   |   |
-| PCZIP                     |   |   |
-| Product Description       |   |   |
-| Product Description (NVD) |   |   |
-| Product Master ID         |   |   |
-| Qtr                       |   |   |
-| REBATE_ID                 |   |   |
-| REBATE_INVOICE_DATE       |   |   |
-| SECTOR                    |   |   |
-| State                     |   |   |
-| Student Count             |   |   |
-| SY                        |   |   |
-| SY-Half                   |   |   |
-| Year                      |   |   |
-| BILLED_REBATE_AMT         |   |   |
-| Case (NVD)                |   |   |
-| Case (Product Detail)     |   |   |
-| Purchase $'s              |   |   |
-| Purchase $'s (NVD)        |   |   |
-| REBATEABLE_PURCH_AMT      |   |   |
-| Total Weight (LBS)        |   |   |
-| Total Weight (LBS)(NVD)   |   |   |
-| Weight (LBS)              |   |   |
+| #SKU                      | PD : #SKU | PD : MFGR# | trimmed to remove extra spaces  |
+| ARA_PRODUCT_ID            | NVD : ARA_PRODUCT_ID | NVD : ARA_PRODUCT_ID  | convert integer to string |
+| BRAND                     | PD : BRAND  | PD : BRAND  |   |
+| Date                      | PD : Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| Distributor               | PD : Distributor  | PD : DISTRIBUTOR  | (formula)  |
+| Distributor House         | PD : Distributor House  | PD : DISTRIBUTOR |   |
+| FiscalDate                | PD : FiscalDate  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| IPS Member ID             | PD : IPS Member ID  | PD : GPO_MEMBER_ID  |   |
+| MAJOR_CAT                 | PD : MAJOR_CAT  | PD : MAJOR_CAT  |   |
+| Manufacturer              | PD : Manufacturer  | PD : MFGR  | (formula)  |
+| Manufacturer (NVD)        | NVD : Manufacturer  | NVD : MANUFACTURER_NAME  | (formula)  |
+| Member Name               | PD : Member Name  | PD : COMPONENT  |   |
+| MFGR_ID                   | PD : MFGR_ID  | PD : MFGR_ID  |   |
+| MINOR_CAT                 | PD : MINOR_CAT  | PD : MINOR_CAT  |   |
+| Name of Co-Op             | PD : Name of Co-Op  | Salesforce : Name of Co-Op  |   |
+| Pack Size                 | PD : Pack Size  | PD : Pack Size Orig  | (formula)  |
+| Pack Size Orig            | PD : Pack Size Orig  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK  | (formula)  |
+| Parent Manufacturer       | PD : Parent Manufacturer  | PD : PARENT_MANUFACTURER_NAME  |   |
+| PC#                       | PD : PC#  | PD : PC#  |   |
+| PC# (NVD)                 | NVD : PC#  | NVD : PROFIT_CENTER_CD  |   |
+| PCZIP                     | PD : PCZIP  | PD : PCZIP  |   |
+| Product Description       | PD : Product Description  | PD : PRODUCT_DESCRIPTION  |   |
+| Product Description (NVD) | NVD : Product Description  | NVD : PRODUCT_DESCRIPTION  |   |
+| Product Master ID         | PD : Product Master ID  | PD : PRODUCT_MASTER_ID  |   |
+| Qtr                       | PD : Qtr  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| REBATE_ID                 | NVD : REBATE_ID  | NVD : REBATE_ID  |   |
+| REBATE_INVOICE_DATE       | NVD : REBATE_INVOICE_DATE  | NVD : REBATE_INVOICE_DATE  |   |
+| SECTOR                    | PD : SECTOR  | PD : SECTOR  |   |
+| State                     | PD : State  | PD : PC_STATE_CD  |   |
+| Student Count             | PD : Student Count  | Salesforce : Capacity  | convert integer to string  |
+| SY                        | PD : SY  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| SY-Half                   | PD : SY-Half  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| Year                      | PD : Year  | PD : PERIOD_YEAR  | (formula)  |
+| BILLED_REBATE_AMT         | NVD : BILLED_REBATE_AMT  | NVD : BILLED_REBATE_AMT  |   |
+| Cases                     | PD : Cases  | PD : VOLUME  |   |
+| Cases (NVD)               | NVD : Cases  | NVD : TOTAL_PKG_QUANTITY  |   |
+| Purchase $'s              | PD : Purchase $'s  | PD : PURCHASES  |   |
+| Purchase $'s (NVD)        | NVD : Purchase $'s  | NVD : TOTAL_PURCH_AMT  |   |
+| REBATEABLE_PURCH_AMT      | NVD : REBATEABLE_PURCH_AMT  | NVD : REBATEABLE_PURCH_AMT   |   |
+| Total Weight (LBS)        | PD : Total Weight (LBS)  | PD : Weight<BR>PD : Cases  | (formula)  |
+| Total Weight (LBS)(NVD)   | NVD : Toal Weight (LBS)  | NVD : TOTAL_WT_QUANTITY   |   |
+| Weight (LBS)              | PD : Weight (LBS)  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK   | (formula)  |
 
