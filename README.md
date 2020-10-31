@@ -513,7 +513,7 @@ The second level aggregation is grouped by the same fields used by the join and 
 ## Fields Explained
 
 | Product Detail + NVD (Clean) | IPS Product Detail = PD<BR>IPS_BILLED_NVD_DATA = NVD |  Product Detail (Clean) = PD<BR>Billed NVD (Clean) = NVD | Formula/Notes |
-| :------------------------ | :-------------------- | :---------------- | :------------ | ---: |
+| :------------------------ | :-------------------- | :---------------- | :------------ |
 | #SKU                      | PD.MFGR#                 | PD.#SKU  | trimmed to remove extra spaces  |
 | ARA_PRODUCT_ID            |   |   |
 | BRAND                     |   |   |
