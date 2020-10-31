@@ -161,168 +161,6 @@ Renaming:
     * DISTRIBUTOR               -> Distributor House
     * Capacity (Salesforce)     -> Student Count (int to string)
 
-Calculated Fields:
-
-    * Weight (LBS)
-
-```
-    If     [ITEM_UOM] = "LBS" THEN [PACK] * [ITEM]
-    ELSEIF [ITEM_UOM] = "LB"  THEN [PACK] * [ITEM]
-    ELSEIF [ITEM_UOM] = "OZ"  THEN [PACK] * [ITEM] / 16
-    ELSEIF [ITEM_UOM] = "OZS" THEN [PACK] * [ITEM] / 16
-    END
-```
-
-    * Total Weight (LBS)
-
-```
-    [Cases] * [Weight (LBS)]
-```
-
-    * ITEM_STR
-```
-    IF INT([ITEM]) = [ITEM] THEN
-       STR([ITEM])
-    ELSE
-        IF ([ITEM] - INT(ITEM))*100 < 10 THEN
-            STR(INT([ITEM]))+'.0'+STR(ROUND(([ITEM] - INT(ITEM))*100))
-        ELSE
-            STR(INT([ITEM]))+'.'+ STR(ROUND(([ITEM]-INT([ITEM]))*100))
-        END
-    END
-```
-
-    * Pack Size Orig
-
-```
-
-    IF [ITEM_STR] = '0' OR ISNULL([ITEM_STR]) THEN
-        IF [PACK] = 0 OR ISNULL([PACK]) THEN
-            [ITEM_UOM]
-        ELSE
-            STR([PACK])+"/"+[ITEM_UOM]
-        END
-    ELSE
-        IF [PACK] = 0 OR ISNULL([PACK]) THEN
-            [ITEM_STR]+" "+[ITEM_UOM]
-        ELSE
-            [ITEM_STR]+"/"+STR([PACK])+" "+[ITEM_UOM]
-        END
-    END
-```
-
-    * Manufacturer
-    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
-
-```
-    IF ISNULL([Old]) THEN
-        [Manufacturer]
-    ELSEIF ISNULL([New]) THEN
-        IF ISNULL([BRAND]) THEN
-            IF ISNULL([MFGR_ID]) THEN
-                [Manufacturer]
-            ELSE
-                [MFGR_ID]
-            END
-        ELSE
-            [BRAND]
-        END
-    ELSE
-        [New]
-    END
-```
-    Notice that when Excel.Manufacturer.New is left empty, the BRAND or, if null, the MFGR_ID value will be substituted for the Manufacturer.
-
-    * Date
-
-```
-    DATE(DATEPARSE ( "MM/yyyy", [PERIOD_MONTH] + "/" + [PERIOD_YR] ))
-```
-
-    * FiscalDate
-
-```
-    IF INT([PERIOD_MONTH]) < 10 THEN
-        DATE(DATEPARSE("MM/yyyy", STR(INT([PERIOD_MONTH])+3) + "/" + [PERIOD_YR]))
-    ELSE
-        DATE(DATEPARSE("MM/yyyy", STR(INT([PERIOD_MONTH])-9) + "/" + STR(INT([PERIOD_YR])+1)))
-    END
-```
-
-    * Qtr
-
-```
-    "Q"+STR(INT((INT([PERIOD_MONTH])-1)/3)+1)+"-"+[PERIOD_YR]
-```
-
-    * SY-Half
-
-```
-    IF INT([PERIOD_MONTH]) <= 6 THEN
-        "2H-"+STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
-    ELSE
-        "1H-"+[PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
-    END
-```
-
-    * SY
-
-```
-    IF INT([PERIOD_MONTH]) <= 6 THEN
-        STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
-    ELSE
-        [PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
-    END
-```
-
-    * Distributor
-    Join "DISTRIBUTOR" to Excel.Distributor.Old to pick up new names (detailed in Excel)
-
-```
-    IF ISNULL([Old]) THEN
-        "* "+[DISTRIBUTOR]
-    ELSE
-        [New]
-    END
-```
-
-    Notice: When a name substitution (Old to New) is not found, the original DISTRIBUTOR name is used, but is prefixed with an asterix so that missing values can be spotted quickly. The DISTRIBUTOR field is renamed to "Distributor House".
-
-
-    * Join "Salesforce/Salesforce Accounts Extract" on "IPS Member ID"
-        * First aggregate table.
-        * Group by "IPS Member ID"
-        * MAX of Student Count
-        * MAX of Name of Co-Op
-
-
-    * Inner Join on Manufacturer, #SKU
-        * MAX of Product Description    -> Unique PD
-        * MAX of Pack Size              -> Unique PS
-
-
-    * Pack Size
-    This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
-
-```
-    IF ISNULL([#SKU]) or [#SKU] = "" THEN
-        [Pack Size Orig]
-    ELSE
-        [Unique PS]
-    END
-```
-
-    * Product Description
-    Same effect as for "Pack Size", we choose the aggregated value unless #SKU is null/empty in which case we stick with the original value,
-
-```
-    IF ISNULL([#SKU]) or [#SKU] = "" THEN
-        [PRODUCT_DESCRIPTION]
-    ELSE
-        [Unique PD]
-    END
-```
-
 
 ### Detail+NVD_Step-1.tfl, "Billed NVD" Portion
 
@@ -340,85 +178,6 @@ Renaming:
     * REBATE_INVOICE_NUMBER         -> REBASE_INVOICE_NUMBER (int to string)
     * MANUFACTURER_PRODUCT_CD       -> #SKU (timmed to remove extra spaces)
     * PROFIT_CENTER_CD              -> PC#
-
-Calculated Fields:
-
-    * Manufacturer
-    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
-
-```
-    IF ISNULL([Old]) THEN
-        [MANUFACTURER_NAME]
-    ELSEIF ISNULL([New]) THEN
-        IF ISNULL([BRAND_NAME]) THEN
-            IF ISNULL([MFGR_ID]) THEN
-                [MANUFACTURER_NAME]
-            ELSE
-                [MFGR_ID]
-            END
-        ELSE
-            [BRAND_NAME]
-        END
-    ELSE
-        [New]
-    END
-```
-
-    Note: This is a similar process above calculation for Manufacturer.
-
-    * Date
-
-```
-    DATE(DATEPARSE ("MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR]))
-```
-
-    * FiscalDate
-
-```
-    DATE(DATEPARSE ("MM/yyyy", STR([FISCAL_MONTH]) + "/" + STR([FISCAL_YEAR])))
-```
-
-*NOTE 1:*
-
-We will join Billed NVD with Product Details using the following keys,
-
-* MFGR_ID                           (MFGR_ID)
-* MFGR#                             (#SKU)
-* GPO_MEMBER_ID                     (IPS Member ID)
-* CALENDAR_MONTH + CALENDAR_YEAR    (date)
-
-We need to be aware that the actual records are indexed by yet another field,
-
-* CLIENT_ID
-
-*NOTE 2:*
-
-We will join Billed NVD with Product Details using the following keys,
-
-* MANUFACTURER_ID                   (MFGR_ID)
-* MANUFACTURER_PRODUCT_CD           (#SKU)
-* IPS_MEMBER_ID                     (IPS Member ID)
-* CALENDAR_MONTH + CALENDAR_YEAR    (date)
-
-We need to be aware that records in this table are keyed more finely.
-In particular,
-
-REBATEABLE_PURCH_AMT and TOTAL_PKG_QUANTITY are indexed by the above and also,
-
-* ITEM_PACK_SIZE + ITEM_UOM
-* FISCAL_MONTH + FISCAL_YEAR
-
-BILLED_REBATE_AMT is indexed all the above plus,
-
-* NVD_RATE, NVD_RATE_BASIS_TYPE, INCOME_PROVISION, REBATE_ID
-
-```
-If NVD_RATE_BASIS_TYPE = SPD Then
-    BILLED_REBATE_AMT = NVD_RATE * REBATEABLE_PURCH_AMT
-
-If NVD_RATE_BASIS_TYPE = PKG Then
-    BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
-```
 
 ### Detail+NVD_Step-2.tfl
 
@@ -514,45 +273,305 @@ The second level aggregation is grouped by the same fields used by the join and 
 
 | Product Detail + NVD (Clean) | Product Detail (Clean)<BR>Billed NVD (Clean) | IPS Product Detail<BR>IPS_BILLED_NVD_DATA | Notes |
 | :------------------------ | :-------------------- | :---------------- | :------------ |
-| #SKU                      | PD : #SKU | PD : MFGR# | trimmed to remove extra spaces  |
-| ARA_PRODUCT_ID            | NVD : ARA_PRODUCT_ID | NVD : ARA_PRODUCT_ID  | convert integer to string |
-| BRAND                     | PD : BRAND  | PD : BRAND  |   |
+| Aramark Product ID        | NVD : Aramark Product ID | NVD : ARA_PRODUCT_ID  | convert integer to string |
+| Brand                     | PD : Brand  | PD : BRAND  |   |
+| Category Major            | PD : Category Major  | PD : MAJOR_CAT  |   |
+| Category Minor            | PD : Category Minor  | PD : MINOR_CAT  |   |
+| Co-Op Name                | PD : Co-Op Name | Salesforce : Name of Co-Op  |   |
 | Date                      | PD : Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Distributor               | PD : Distributor  | PD : DISTRIBUTOR  | (formula)  |
 | Distributor House         | PD : Distributor House  | PD : DISTRIBUTOR |   |
-| FiscalDate                | PD : FiscalDate  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
-| IPS Member ID             | PD : IPS Member ID  | PD : GPO_MEMBER_ID  |   |
-| MAJOR_CAT                 | PD : MAJOR_CAT  | PD : MAJOR_CAT  |   |
+| Fiscal Date               | PD : Fiscal Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Manufacturer              | PD : Manufacturer  | PD : MFGR  | (formula)  |
 | Manufacturer (NVD)        | NVD : Manufacturer  | NVD : MANUFACTURER_NAME  | (formula)  |
-| Member Name               | PD : Member Name  | PD : COMPONENT  |   |
-| MFGR_ID                   | PD : MFGR_ID  | PD : MFGR_ID  |   |
-| MINOR_CAT                 | PD : MINOR_CAT  | PD : MINOR_CAT  |   |
-| Name of Co-Op             | PD : Name of Co-Op  | Salesforce : Name of Co-Op  |   |
-| Pack Size                 | PD : Pack Size  | PD : Pack Size Orig  | (formula)  |
+| Manufacturer ID           | PD : Manufacturer ID  | PD : MFGR_ID  |   |
+| Manufacturer Parent       | PD : Manufacturer Parent  | PD : PARENT_MANUFACTURER_NAME  |   |
+| Member                    | PD : Member  | PD : COMPONENT  |   |
+| Member ID                 | PD : Member ID  | PD : GPO_MEMBER_ID  |   |
+| Pack Size                 | PD : Pack Size  | PD : Pack Size Orig  | Selected Pack Size for Man+SKU group  |
 | Pack Size Orig            | PD : Pack Size Orig  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK  | (formula)  |
-| Parent Manufacturer       | PD : Parent Manufacturer  | PD : PARENT_MANUFACTURER_NAME  |   |
-| PC#                       | PD : PC#  | PD : PC#  |   |
-| PC# (NVD)                 | NVD : PC#  | NVD : PROFIT_CENTER_CD  |   |
-| PCZIP                     | PD : PCZIP  | PD : PCZIP  |   |
-| Product Description       | PD : Product Description  | PD : PRODUCT_DESCRIPTION  |   |
+| Product Description       | PD : Product Description  | PD : PRODUCT_DESCRIPTION  | Selected Product Description for Man+SKU group |
 | Product Description (NVD) | NVD : Product Description  | NVD : PRODUCT_DESCRIPTION  |   |
 | Product Master ID         | PD : Product Master ID  | PD : PRODUCT_MASTER_ID  |   |
-| Qtr                       | PD : Qtr  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
-| REBATE_ID                 | NVD : REBATE_ID  | NVD : REBATE_ID  |   |
-| REBATE_INVOICE_DATE       | NVD : REBATE_INVOICE_DATE  | NVD : REBATE_INVOICE_DATE  |   |
-| SECTOR                    | PD : SECTOR  | PD : SECTOR  |   |
+| Profit Center ID          | PD : Profit Center ID  | PD : PC#  |   |
+| Profit Center ID (NVD)    | NVD : Profit Center ID  | NVD : PROFIT_CENTER_CD  |   |
+| Profit Center ZIP         | PD : Profit Center ZIP  | PD : PCZIP  |   |
+| QTR                       | PD : QTR  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
+| Rebate ID (NVD)           | NVD : Rebate ID  | NVD : REBATE_ID  |   |
+| Rebate Invoice Date (NVD) | NVD : Rebate Invoice Date  | NVD : REBATE_INVOICE_DATE  |   |
+| Sector                    | PD : Sector  | PD : SECTOR  |   |
+| SKU                       | PD : #KU | PD : MFGR# | trimmed to remove extra spaces  |
 | State                     | PD : State  | PD : PC_STATE_CD  |   |
 | Student Count             | PD : Student Count  | Salesforce : Capacity  | convert integer to string  |
 | SY                        | PD : SY  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | SY-Half                   | PD : SY-Half  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Year                      | PD : Year  | PD : PERIOD_YEAR  | (formula)  |
-| BILLED_REBATE_AMT         | NVD : BILLED_REBATE_AMT  | NVD : BILLED_REBATE_AMT  |   |
+| Billed $'s (NVD)          | NVD : Billed $'s  | NVD : BILLED_REBATE_AMT  |   |
 | Cases                     | PD : Cases  | PD : VOLUME  |   |
 | Cases (NVD)               | NVD : Cases  | NVD : TOTAL_PKG_QUANTITY  |   |
+| LBS / Case                | PD : LBS / Case  | PD : PACK<BR>PD : ITEM<BR>PD : ITEM_UOM<BR>  | PACK * ITEM (in lbs) |
+| LBS Total                 | PD : LBS Total  | PD : Cases<BR>PD : LBS / Case  | Cases * LBS / Case |
+| LBS Total (NVD)           | NVD : LBS Total  | NVD : TOTAL_WT_QUANTITY   | Stated directly in the NVD table  |
 | Purchase $'s              | PD : Purchase $'s  | PD : PURCHASES  |   |
 | Purchase $'s (NVD)        | NVD : Purchase $'s  | NVD : TOTAL_PURCH_AMT  |   |
-| REBATEABLE_PURCH_AMT      | NVD : REBATEABLE_PURCH_AMT  | NVD : REBATEABLE_PURCH_AMT   |   |
-| Total Weight (LBS)        | PD : Total Weight (LBS)  | PD : Cases<BR>PD : Weight (LBS)  | Cases * Weight (LBS) |
-| Total Weight (LBS)(NVD)   | NVD : Total Weight (LBS)  | NVD : TOTAL_WT_QUANTITY   |   |
-| Weight (LBS)              | PD : Total Weight (LBS)  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK<BR>  | (formula)  |
+| Rebateable $'s (NVD)      | NVD : Rebateable $'s  | NVD : REBATEABLE_PURCH_AMT   |   |
+
+
+### Notes:
+
+* In the table above, categorical data is sorted at the top, measure data is sorted at the bottom as it appears in a Tableau Desktop worksheet.
+* (IPS Product Detail) ITEM is weight per item in some units stated in UNIT_UOM.
+* (IPS Product Detail) PACK is number of items in a package described by SOLD_BY, typically a case.
+* (IPS Product Detail) VOLUME is the number of packs sold in each row of the table.
+* The "Product Detail (Clean)" table is created by mixing in several other tables. The number of rows are the same as the main source table, "IPS Product Detail"
+* The "Billed NVD (clean)" table shares a least one mixin table. The number of rows is the same as the main source table, "IPS_BILLED_NVD_DATA"
+* The "Product Detail + NVD (Clean)" table is created by several aggregations and "left" joins the "Product Detail (Clean)" and "Billed NVD (clean)" tables. The direct result of aggregating tables is that the number of resulting rows is significantly less than the main "Product Detail (Clean)" table.
+* The "Product Detail (Clean)" table is indexed by the following fields,
+    * Member ID
+    * Manufacturer ID
+    * SKU
+    * Date
+    * CLIENT_ID
+* The "Billed NVD (Clean)" table is indexed by the following fields,
+    * Member ID
+    * Manufacturer ID
+    * SKU
+    * Date
+    * Fiscal Date
+    * ITEM_PACK_SIZE + ITEM_UOM
+    * REBATE_ID
+
+
+### Product Detail (Clean) Formulas
+
+Calculated Fields:
+
+    * LBS / Case
+
+```
+    If     [ITEM_UOM] = "LBS" THEN [PACK] * [ITEM]
+    ELSEIF [ITEM_UOM] = "LB"  THEN [PACK] * [ITEM]
+    ELSEIF [ITEM_UOM] = "OZ"  THEN [PACK] * [ITEM] / 16
+    ELSEIF [ITEM_UOM] = "OZS" THEN [PACK] * [ITEM] / 16
+    END
+```
+
+    * LBS Total
+
+```
+    [Cases] * [Weight (LBS)]
+```
+
+    * ITEM_STR
+```
+    IF INT([ITEM]) = [ITEM] THEN
+       STR([ITEM])
+    ELSE
+        IF ([ITEM] - INT(ITEM))*100 < 10 THEN
+            STR(INT([ITEM]))+'.0'+STR(ROUND(([ITEM] - INT(ITEM))*100))
+        ELSE
+            STR(INT([ITEM]))+'.'+ STR(ROUND(([ITEM]-INT([ITEM]))*100))
+        END
+    END
+```
+
+    * Pack Size Orig
+
+```
+
+    IF [ITEM_STR] = '0' OR ISNULL([ITEM_STR]) THEN
+        IF [PACK] = 0 OR ISNULL([PACK]) THEN
+            [ITEM_UOM]
+        ELSE
+            STR([PACK])+"/"+[ITEM_UOM]
+        END
+    ELSE
+        IF [PACK] = 0 OR ISNULL([PACK]) THEN
+            [ITEM_STR]+" "+[ITEM_UOM]
+        ELSE
+            [ITEM_STR]+"/"+STR([PACK])+" "+[ITEM_UOM]
+        END
+    END
+```
+
+    * Manufacturer
+    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
+
+```
+    IF ISNULL([Old]) THEN
+        [Manufacturer]
+    ELSEIF ISNULL([New]) THEN
+        IF ISNULL([BRAND]) THEN
+            IF ISNULL([MFGR_ID]) THEN
+                [Manufacturer]
+            ELSE
+                [MFGR_ID]
+            END
+        ELSE
+            [BRAND]
+        END
+    ELSE
+        [New]
+    END
+```
+    Notice that when Excel.Manufacturer.New is left empty, the BRAND or, if null, the MFGR_ID value will be substituted for the Manufacturer.
+
+    * Date
+
+```
+    DATE(DATEPARSE ( "MM/yyyy", [PERIOD_MONTH] + "/" + [PERIOD_YR] ))
+```
+
+    * Fiscal Date
+
+```
+    IF INT([PERIOD_MONTH]) < 10 THEN
+        DATE(DATEPARSE("MM/yyyy", STR(INT([PERIOD_MONTH])+3) + "/" + [PERIOD_YR]))
+    ELSE
+        DATE(DATEPARSE("MM/yyyy", STR(INT([PERIOD_MONTH])-9) + "/" + STR(INT([PERIOD_YR])+1)))
+    END
+```
+
+    * QTR
+
+```
+    "Q"+STR(INT((INT([PERIOD_MONTH])-1)/3)+1)+"-"+[PERIOD_YR]
+```
+
+    * SY-Half
+
+```
+    IF INT([PERIOD_MONTH]) <= 6 THEN
+        "2H-"+STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
+    ELSE
+        "1H-"+[PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
+    END
+```
+
+    * SY
+
+```
+    IF INT([PERIOD_MONTH]) <= 6 THEN
+        STR(INT([PERIOD_YR])-1)+"-"+STR(INT([PERIOD_YR])-2000)
+    ELSE
+        [PERIOD_YR]+"-"+STR(INT([PERIOD_YR])-2000+1)
+    END
+```
+
+    * Distributor
+    Join "DISTRIBUTOR" to Excel.Distributor.Old to pick up new names (detailed in Excel)
+
+```
+    IF ISNULL([Old]) THEN
+        "* "+[DISTRIBUTOR]
+    ELSE
+        [New]
+    END
+```
+
+    Notice: When a name substitution (Old to New) is not found, the original DISTRIBUTOR name is used, but is prefixed with an asterix so that missing values can be spotted quickly. The DISTRIBUTOR field is renamed to "Distributor House".
+
+
+    * Join "Salesforce/Salesforce Accounts Extract" on "IPS Member ID"
+        * First aggregate table.
+        * Group by "IPS Member ID"
+        * MAX of Student Count
+        * MAX of Name of Co-Op
+
+
+    * Inner Join on Manufacturer, #SKU
+        * MAX of Product Description    -> Unique PD
+        * MAX of Pack Size              -> Unique PS
+
+
+    * Pack Size
+    This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
+
+```
+    IF ISNULL([#SKU]) or [#SKU] = "" THEN
+        [Pack Size Orig]
+    ELSE
+        [Unique PS]
+    END
+```
+
+    * Product Description
+    Same effect as for "Pack Size", we choose the aggregated value unless #SKU is null/empty in which case we stick with the original value,
+
+```
+    IF ISNULL([#SKU]) or [#SKU] = "" THEN
+        [PRODUCT_DESCRIPTION]
+    ELSE
+        [Unique PD]
+    END
+```
+
+### Billed NVD (Clean) Forumlas
+
+Calculated Fields:
+
+    * Manufacturer
+    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
+
+```
+    IF ISNULL([Old]) THEN
+        [MANUFACTURER_NAME]
+    ELSEIF ISNULL([New]) THEN
+        IF ISNULL([BRAND_NAME]) THEN
+            IF ISNULL([MFGR_ID]) THEN
+                [MANUFACTURER_NAME]
+            ELSE
+                [MFGR_ID]
+            END
+        ELSE
+            [BRAND_NAME]
+        END
+    ELSE
+        [New]
+    END
+```
+
+    Note: This is a similar process above calculation for Manufacturer.
+
+    * Date
+
+```
+    DATE(DATEPARSE ("MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR]))
+```
+
+    * Fiscal Date
+
+```
+    DATE(DATEPARSE ("MM/yyyy", STR([FISCAL_MONTH]) + "/" + STR([FISCAL_YEAR])))
+```
+
+
+*NOTE 2:*
+
+We will join Billed NVD with Product Details using the following keys,
+
+* MANUFACTURER_ID                   (MFGR_ID)
+* MANUFACTURER_PRODUCT_CD           (#SKU)
+* IPS_MEMBER_ID                     (IPS Member ID)
+* CALENDAR_MONTH + CALENDAR_YEAR    (date)
+
+We need to be aware that records in this table are keyed more finely.
+In particular,
+
+REBATEABLE_PURCH_AMT and TOTAL_PKG_QUANTITY are indexed by the above and also,
+
+* ITEM_PACK_SIZE + ITEM_UOM
+* FISCAL_MONTH + FISCAL_YEAR
+
+BILLED_REBATE_AMT is indexed all the above plus,
+
+* NVD_RATE, NVD_RATE_BASIS_TYPE, INCOME_PROVISION, REBATE_ID
+
+```
+If NVD_RATE_BASIS_TYPE = SPD Then
+    BILLED_REBATE_AMT = NVD_RATE * REBATEABLE_PURCH_AMT
+
+If NVD_RATE_BASIS_TYPE = PKG Then
+    BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
+```
+
