@@ -329,17 +329,26 @@ The second level aggregation is grouped by the same fields used by the join and 
 * The "Product Detail (Clean)" table is indexed by the following fields,
     * Member ID
     * Manufacturer ID
-    * SKU
     * Date
+    * SKU
     * CLIENT_ID
 * The "Billed NVD (Clean)" table is indexed by the following fields,
     * Member ID
     * Manufacturer ID
-    * SKU
     * Date
     * Fiscal Date
-    * ITEM_PACK_SIZE + ITEM_UOM
-    * REBATE_ID
+    * Rebate ID
+    * Rebate Invoice ID
+    * Aramark Product ID
+    * DISTIBUTION_CENTER_ID
+    * PKG_BASIS
+    * WT_BASIS
+    * NVD_RATE
+        * There are only 10 pairs of records where this matters and not for INCOME_PROVISION
+    * INCOME_PROVISION
+        * This seems to be a split field
+        * Fields (Cases, Purchase $'s, Rebateable $'s, LBS Total) each are duplicated.
+        * There are 764 pairs of records (Nearly all DART / SOLO CUP CPC) where records are not duplicated.
 
 
 ### Product Detail (Clean) Formulas
@@ -550,9 +559,9 @@ Calculated Fields:
 
 We will join Billed NVD with Product Details using the following keys,
 
+* IPS_MEMBER_ID                     (IPS Member ID)
 * MANUFACTURER_ID                   (MFGR_ID)
 * MANUFACTURER_PRODUCT_CD           (#SKU)
-* IPS_MEMBER_ID                     (IPS Member ID)
 * CALENDAR_MONTH + CALENDAR_YEAR    (date)
 
 We need to be aware that records in this table are keyed more finely.
