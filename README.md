@@ -500,16 +500,17 @@ The practical effect of this dual-stage mapping is that a manufacturer name, suc
 Even simpler; A manufacturer name is passed through the mapping table once, either picking up a give name or brand name or mfgr_id, then passed through again in the second stage to pick up a final name. 
 
 Example:
+
     * Step 0: Suppose we have the following "IPS Product Detail" table,
 
 | Manufacturer | BRAND |
 | :-----------: | :---------: |
-| Kellogs | Two Scoops |
+| Kelloggs | Two Scoops |
 | \*\*\*BLANK*** | A ZEREGA |
 | \*\*\*BLANK*** | 3M |
 | A ZEREGA | Happy Place |
 
-    And we have the following Manufacturer mapping table
+And we have the following Manufacturer mapping table
 
 | Old | New |
 | :---------: | :--------------------: |
@@ -521,7 +522,7 @@ Example:
 
 | Manufacturer | BRAND |
 | :-----------: | :---------: |
-| Kellogs | Two Scoops |
+| Kelloggs | Two Scoops |
 | A ZEREGA | A ZEREGA |
 | 3M | 3M |
 | A. ZEREGA & SONS | Happy Place |
@@ -530,7 +531,7 @@ Example:
 
 | Manufacturer | BRAND |
 | :-----------: | :---------: |
-| Kellogs | Two Scoops |
+| Kelloggs | Two Scoops |
 | A. ZEREGA & SONS | A ZEREGA |
 | 3M | 3M |
 | A. ZEREGA & SONS | Happy Place |
