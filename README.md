@@ -14,7 +14,7 @@ There are two Tableau Prep Builder workflows in the "Prep Flows" subdirectory. T
 * Detail+NVD_Step-1.tfl
 * Detail+NVD_Step-2.tfl
 
-The "Detail+NVD_Step-1.tfl" should not be run directly. Instead, open it and export it to "Detail+NVD_Step-1.tflx" and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the Excel file/workbook,
+The ".tfl" workflows must not be run directly. Instead, open it and export it to ".tflx" files and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the Excel file/workbook,
 
 * IPS_Product_Details.xls
 
@@ -91,6 +91,7 @@ Purpose: To perform the join of Product Detail and Billed NVD and pick up only t
 Inputs,
 * server: Teriko's Projects/Product Detail (Clean)
 * server: Teriko's Projects/Billed NVD (Clean)
+* IPS_Product_Details.xls: Manufacturer 
 
 Output,
 * server: Teriko's Projects/Product Detail + NVD (Clean)
@@ -104,6 +105,8 @@ Then you will need to first,
 
 1. Open "Detail+NVD_Step-1.tfl"
     * File -> Export to "Detail+NVD_Step-1.tflx" (default, replace existing)
+2. Open "Detail+NVD_Step-2.tfl"
+    * File -> Export to "Detail+NVD_Step-2.tflx" (default, replace existing)
 
 Else you can skip these steps. Their purpose is to pull in the local Excel mapping data into the Prep Builder package (.tflx) file(s).
 
@@ -112,8 +115,8 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 
 1. Open "Detail+NVD_Step-1.tflx"
     * Flow -> Run All (~ 1.5 hours)
-2. Open "Detail+NVD_Step-2.tfl"
-    * Flow -> Run All (~ 45 minutes)
+2. Open "Detail+NVD_Step-2.tflx"
+    * Flow -> Run All (~ 35 minutes)
 
 *Note:* There is a way to publish flows to the server and have them automatically scheduled. Publication to the server requires another licence for Tableau Conductor
 
@@ -479,3 +482,56 @@ The "Product Detail (Clean)" and the partially aggregated (to resolve split reco
 * SKU
 
 All categorical fields are aggregated as "MAX" and all measure fields are aggregated as "SUM"
+
+* Manufacturer
+
+The post-merge step includes a second mapping from the "IPS Product Details.xls" "Manufacturer" mapping table (see above). This time through the formula is simpler and empty "new" fields are ignored. Notice that the incoming "Manufacturer" field name is changed temporarily to "Manufacturer.Orig" and then discarded in favor of the following formula,
+
+```
+IF ISNULL([New]) OR [New] = "" THEN
+    [Manufacturer.Orig]
+ELSE
+    [New]
+END
+```
+
+The practical effect of this dual-stage mapping is that a manufacturer name, such as "***BLANK***" that is mapped to an empty value and computed to be something else such as "A ZEREGA" has a second chance to map to something canonical, according to the mapping table such as "A. ZEREGA & SONS". 
+
+Even simpler; A manufacturer name is passed through the mapping table once, either picking up a give name or brand name or mfgr_id, then passed through again in the second stage to pick up a final name. 
+
+Example:
+    * Step 0: Suppose we have the following "IPS Product Detail" table,
+
+| Manufacturer | BRAND |
+| :-----------: | :---------: |
+| Kellogs | Two Scoops |
+| \*\*\*BLANK*** | A ZEREGA |
+| \*\*\*BLANK*** | 3M |
+| A ZEREGA | Happy Place |
+
+    And we have the following Manufacturer mapping table
+
+| Old | New |
+| :---------: | :--------------------: |
+| \*\*\*BLANK*** | |
+| A ZEREGA    | A. ZEREGA & SONS |
+
+
+    * Step 1. The "Product Detail (Clean)" table be mapped to look like,
+
+| Manufacturer | BRAND |
+| :-----------: | :---------: |
+| Kellogs | Two Scoops |
+| A ZEREGA | A ZEREGA |
+| 3M | 3M |
+| A. ZEREGA & SONS | Happy Place |
+
+    * Step 2. The "Product Detail + NVD (Clean)" table will be mapped (second application) and look like this,
+
+| Manufacturer | BRAND |
+| :-----------: | :---------: |
+| Kellogs | Two Scoops |
+| A. ZEREGA & SONS | A ZEREGA |
+| 3M | 3M |
+| A. ZEREGA & SONS | Happy Place |
+
