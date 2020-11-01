@@ -117,158 +117,6 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 
 *Note:* There is a way to publish flows to the server and have them automatically scheduled. Publication to the server requires another licence for Tableau Conductor
 
-## Transformation Details
-
-### Excel IPS_Product_Details.xls
-
-There are two mapping tables in the associated Excel workbook,
-
-* Manufacturers
-
-The Manufacturer sheet/table contains two fields,
-
-    * Old
-    * New
-
-The "Old" field is intended to join with the "IPS Product Detail" MFGR/Manufacturer field.
-The "New" field either contains a name that is intended to substituted for an existing name (this is an opportunity to group names together into a common name) or left blank. In the left blank case, a formula in the workflow will fill in a computed value in place of the original name, originally this was BRAND or, if null, MFGR_ID.
-
-* Distributors
-
-The Distributor sheet/table contains two fields
-
-    * Old
-    * New
-
-The "Old" field is intended to join with the "IPS Product Detail" DISTRIBUTOR/"Distributor House" field
-The "New" field contains substitute names for the given distributor. Please see the actual formula for specifics.
-
-
-### Detail+NVD_Step-1.tfl, "Product Detail" Portion
-
-Renaming:
-
-    * COMPONENT                 -> Member Name
-    * MFGR                      -> Manufacturer
-    * PC_STATE_CD               -> State
-    * PRODUCT_MASTER_ID         -> Product Master ID (string from int)
-    * PURCHASES                 -> Purchase $'s
-    * VOLUME                    -> Cases
-    * GPO_MEMBER_ID             -> IPS Member ID
-    * PARENT_MANUFACTURER_NAME  -> Parent Manufacturer
-    * MFGR#                     -> #SKU (trimmed to remove extra spaces)
-    * PERIOD_YEAR               -> Year
-    * DISTRIBUTOR               -> Distributor House
-    * Capacity (Salesforce)     -> Student Count (int to string)
-
-
-### Detail+NVD_Step-1.tfl, "Billed NVD" Portion
-
-Renaming:
-
-    * IPS_MEMBER_ID                 -> IPS Member ID
-    * ITEM_PACK_SIZE                -> Pack
-    * ITEM_SIZE                     -> ITEM
-    * TOTAL_PKG_QUANTITY            -> Cases
-    * TOTAL_WT_QUANTITY             -> Total Weight (LBS)
-    * TOTAL_PURCH_AMT               -> Purchase $'s
-    * MANUFACTURER_ID               -> MFGR_ID
-    * ARA_PRODUCT_ID                -> ARA_PRODUCT_ID (int to string)
-    * BRAND_ID                      -> BRAND_ID (int to string)
-    * REBATE_INVOICE_NUMBER         -> REBASE_INVOICE_NUMBER (int to string)
-    * MANUFACTURER_PRODUCT_CD       -> #SKU (timmed to remove extra spaces)
-    * PROFIT_CENTER_CD              -> PC#
-
-### Detail+NVD_Step-2.tfl
-
-The purpose of this workflow is to merge the "Product Billed (Clean)" and "Billed NVD (clean)". 
-
-Specifically we use the following source tables,
-
-    * server: Teriko's Projects/Product Detail (Clean)
-    * server: Teriko's Projects/Billed NVD (Clean)
-
-
-Renaming of "Billed NVD (Clean)" fields,
-
-    * PRODUCT_DESCRIPTION   -> Product Description (NVD)
-    * Purchase $'s          -> Purchase $'s (NVD)
-    * Total Weight (LBS)    -> Total Weight (LBS)(NVD)
-    * Manufacturer          -> Manufacturer (NVD)
-    * PC#                   -> PC# (NVD)
-
-The join fields are,
-
-    * MFGR_ID
-    * IPS Member ID
-    * #SKU
-    * Date
-
-Noticing that the above fields do not uniquely identify records in the Billed NVD table, the table needs to first be aggregated before joining on the above keys with the Product Detail table,
-
-The aggregations for Product Detail are,
-
-    * MAX of BRAND
-    * MAX of Distributor
-    * MAX of Distributor House
-    * MAX of MAJOR_CAT
-    * MAX of MINOR_CAT
-    * MAX of Manufacturer
-    * MAX of Member Name
-    * MAX of Name of Co-Op
-    * MAX of Pack Size
-    * MAX of Pack Size Orig
-    * MAX of Parent Manufacturer
-    * MAX of PC#
-    * MAX of PCZIP
-    * MAX of Product Description
-    * MAX of Product Master ID
-    * MAX of Qtr
-    * MAX of SECTOR
-    * MAX of State
-    * MAX of Student Count
-    * MAX of SY
-    * MAX of SY-Half
-    * MAX of Year
-    * SUM of Cases (Product Detail)
-    * SUM of Purchase $'s
-    * SUM of Weight (LBS)
-
-The Billed NVS requires two levels of aggregation
-
-The first level aggregation is grouped by the above join fields as well as,
-
-    * Item UOM (NVD)
-    * FiscalDate
-
-The first level aggregations are,
-
-    * MAX of ARA_PRODUCT_ID
-    * MAX of Manufacturer (NVD)
-    * MAX of Product Description (NVD)
-    * MAX of PRODUCT_CENTER_CD
-    * MAX of REBATE_ID
-    * MAX of REBATE_INVOICE_DATE
-    * MAX of Cases (NVD)
-    * MAX of Purchase $'s (NVD)
-    * MAX of REBATEABLE_PURCH_AMT
-    * MAX of Total Weight (LBS)(NVD)
-    * SUM of BILLED_REBATE_AMT
-
-The second level aggregation is grouped by the same fields used by the join and the following aggregrations,
-
-    * MAX of ARA_PRODUCT_ID
-    * MAX of Manufacturer (NVD)
-    * MAX of Product Description (NVD)
-    * MAX of PRODUCT_CENTER_CD
-    * MAX of REBATE_ID
-    * MAX of REBATE_INVOICE_DATE
-    * SUM of Cases (NVD)
-    * SUM of Purchase $'s (NVD)
-    * SUM of REBATEABLE_PURCH_AMT
-    * SUM of Total Weight (LBS)(NVD)
-    * SUM of BILLED_REBATE_AMT
-
 ## Fields Explained
 
 | Product Detail + NVD (Clean) | Product Detail (Clean)<BR>Billed NVD (Clean) | IPS Product Detail<BR>IPS_BILLED_NVD_DATA | Notes |
@@ -297,7 +145,6 @@ The second level aggregation is grouped by the same fields used by the join and 
 | Profit Center ID (NVD)    | NVD : Profit Center ID  | NVD : PROFIT_CENTER_CD  |   |
 | Profit Center ZIP         | PD : Profit Center ZIP  | PD : PCZIP  |   |
 | QTR                       | PD : QTR  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
-| Rebate ID (NVD)           | NVD : Rebate ID  | NVD : REBATE_ID  |   |
 | Rebate Invoice Date (NVD) | NVD : Rebate Invoice Date  | NVD : REBATE_INVOICE_DATE  |   |
 | Sector                    | PD : Sector  | PD : SECTOR  |   |
 | SKU                       | PD : #KU | PD : MFGR# | trimmed to remove extra spaces  |
@@ -327,35 +174,64 @@ The second level aggregation is grouped by the same fields used by the join and 
 * The "Billed NVD (clean)" table shares a least one mixin table. The number of rows is the same as the main source table, "IPS_BILLED_NVD_DATA"
 * The "Product Detail + NVD (Clean)" table is created by several aggregations and "left" joins the "Product Detail (Clean)" and "Billed NVD (clean)" tables. The direct result of aggregating tables is that the number of resulting rows is significantly less than the main "Product Detail (Clean)" table.
 * The "Product Detail (Clean)" table is indexed by the following fields,
-    * Member ID
     * Manufacturer ID
+    * Member ID
     * Date
     * SKU
     * CLIENT_ID
 * The "Billed NVD (Clean)" table is indexed by the following fields,
-    * Member ID
     * Manufacturer ID
+    * Member ID
+    * DISTIBUTION_CENTER_ID
     * Date
     * Fiscal Date
-    * Rebate ID
     * Rebate Invoice ID
     * Aramark Product ID
-    * DISTIBUTION_CENTER_ID
     * PKG_BASIS
     * WT_BASIS
     * NVD_RATE
         * There are only 10 pairs of records where this matters and not for INCOME_PROVISION
+        * Recommendation: Drop it as index field
+    * Rebate ID
+        * This seems to be a split field
+        * There are 2216 pairs of records, mostly KENS and LA BREA, that index by Rebase ID.
     * INCOME_PROVISION
         * This seems to be a split field
-        * Fields (Cases, Purchase $'s, Rebateable $'s, LBS Total) each are duplicated.
+        * Fields (Cases, Purchase $'s, LBS Total) each are duplicated.
+        * Must do MAX of Rebateable $'s
         * There are 764 pairs of records (Nearly all DART / SOLO CUP CPC) where records are not duplicated.
+
+
+### Excel IPS_Product_Details.xls
+
+There are two mapping tables in the associated Excel workbook,
+
+* Manufacturers
+
+The Manufacturer sheet/table contains two fields,
+
+    * Old
+    * New
+
+The "Old" field is intended to join with the "IPS Product Detail" MFGR/Manufacturer field.
+The "New" field either contains a name that is intended to substituted for an existing name (this is an opportunity to group names together into a common name) or left blank. In the left blank case, a formula in the workflow will fill in a computed value in place of the original name, originally this was BRAND or, if null, MFGR_ID.
+
+* Distributors
+
+The Distributor sheet/table contains two fields
+
+    * Old
+    * New
+
+The "Old" field is intended to join with the "IPS Product Detail" DISTRIBUTOR/"Distributor House" field
+The "New" field contains substitute names for the given distributor. Please see the actual formula for specifics.
 
 
 ### Product Detail (Clean) Formulas
 
 Calculated Fields:
 
-    * LBS / Case
+* LBS / Case
 
 ```
     If     [ITEM_UOM] = "LBS" THEN [PACK] * [ITEM]
@@ -365,13 +241,14 @@ Calculated Fields:
     END
 ```
 
-    * LBS Total
+* LBS Total
 
 ```
     [Cases] * [Weight (LBS)]
 ```
 
-    * ITEM_STR
+* ITEM_STR
+
 ```
     IF INT([ITEM]) = [ITEM] THEN
        STR([ITEM])
@@ -384,7 +261,7 @@ Calculated Fields:
     END
 ```
 
-    * Pack Size Orig
+* Pack Size Orig
 
 ```
 
@@ -403,7 +280,7 @@ Calculated Fields:
     END
 ```
 
-    * Manufacturer
+* Manufacturer
     Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
 
 ```
@@ -425,13 +302,13 @@ Calculated Fields:
 ```
     Notice that when Excel.Manufacturer.New is left empty, the BRAND or, if null, the MFGR_ID value will be substituted for the Manufacturer.
 
-    * Date
+* Date
 
 ```
     DATE(DATEPARSE ( "MM/yyyy", [PERIOD_MONTH] + "/" + [PERIOD_YR] ))
 ```
 
-    * Fiscal Date
+* Fiscal Date
 
 ```
     IF INT([PERIOD_MONTH]) < 10 THEN
@@ -441,13 +318,13 @@ Calculated Fields:
     END
 ```
 
-    * QTR
+* QTR
 
 ```
     "Q"+STR(INT((INT([PERIOD_MONTH])-1)/3)+1)+"-"+[PERIOD_YR]
 ```
 
-    * SY-Half
+* SY-Half
 
 ```
     IF INT([PERIOD_MONTH]) <= 6 THEN
@@ -457,7 +334,7 @@ Calculated Fields:
     END
 ```
 
-    * SY
+* SY
 
 ```
     IF INT([PERIOD_MONTH]) <= 6 THEN
@@ -467,7 +344,7 @@ Calculated Fields:
     END
 ```
 
-    * Distributor
+* Distributor
     Join "DISTRIBUTOR" to Excel.Distributor.Old to pick up new names (detailed in Excel)
 
 ```
@@ -478,23 +355,23 @@ Calculated Fields:
     END
 ```
 
-    Notice: When a name substitution (Old to New) is not found, the original DISTRIBUTOR name is used, but is prefixed with an asterix so that missing values can be spotted quickly. The DISTRIBUTOR field is renamed to "Distributor House".
+ Notice: When a name substitution (Old to New) is not found, the original DISTRIBUTOR name is used, but is prefixed with an asterix so that missing values can be spotted quickly. The DISTRIBUTOR field is renamed to "Distributor House".
 
 
-    * Join "Salesforce/Salesforce Accounts Extract" on "IPS Member ID"
-        * First aggregate table.
-        * Group by "IPS Member ID"
-        * MAX of Student Count
-        * MAX of Name of Co-Op
+* Join "Salesforce/Salesforce Accounts Extract" on "IPS Member ID"
+    * First aggregate table.
+    * Group by "Member ID"
+    * MAX of Student Count
+    * MAX of Co-Op Name
 
 
-    * Inner Join on Manufacturer, #SKU
-        * MAX of Product Description    -> Unique PD
-        * MAX of Pack Size              -> Unique PS
+* Inner Join on Manufacturer, #SKU
+    * MAX of Product Description    -> Unique PD
+    * MAX of Pack Size              -> Unique PS
 
 
-    * Pack Size
-    This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
+* Pack Size
+This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
 
 ```
     IF ISNULL([#SKU]) or [#SKU] = "" THEN
@@ -519,7 +396,7 @@ Calculated Fields:
 
 Calculated Fields:
 
-    * Manufacturer
+* Manufacturer
     Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
 
 ```
@@ -542,45 +419,63 @@ Calculated Fields:
 
     Note: This is a similar process above calculation for Manufacturer.
 
-    * Date
+* Date
 
 ```
     DATE(DATEPARSE ("MM/yyyy", [CALENDAR_MONTH] + "/" + [CALENDAR_YEAR]))
 ```
 
-    * Fiscal Date
+* Fiscal Date
 
 ```
     DATE(DATEPARSE ("MM/yyyy", STR([FISCAL_MONTH]) + "/" + STR([FISCAL_YEAR])))
 ```
 
+### Product Detail + NVD (Clean) Formulas
 
-*NOTE 2:*
+The "Billed NVD (Clean)" table contains "split" records where some field values are duplicated in order to allow other fields to be more detailed. The records are split by the following two key fields,
 
-We will join Billed NVD with Product Details using the following keys,
+* Rebate ID
+* INCOME_PROVISION
 
-* IPS_MEMBER_ID                     (IPS Member ID)
-* MANUFACTURER_ID                   (MFGR_ID)
-* MANUFACTURER_PRODUCT_CD           (#SKU)
-* CALENDAR_MONTH + CALENDAR_YEAR    (date)
+To aggregate correctly, first aggregrate using fields,
 
-We need to be aware that records in this table are keyed more finely.
-In particular,
+* Manufacturer ID
+* Member ID
+* DISTIBUTION_CENTER_ID
+* Date
+* Fiscal Date
+* Rebate Invoice ID
+* Aramark Product ID
+* PKG_BASIS
+* WT_BASIS
 
-REBATEABLE_PURCH_AMT and TOTAL_PKG_QUANTITY are indexed by the above and also,
+Notice, these are the index fields of the table excluding "Rebate ID" and "INCOME_PROVISION".
 
-* ITEM_PACK_SIZE + ITEM_UOM
-* FISCAL_MONTH + FISCAL_YEAR
+Then, aggregate remaining fields by "MAX" for categorical (string, date) fields and,
 
-BILLED_REBATE_AMT is indexed all the above plus,
+* MAX of Rebateable $'s
+* SUM of Billed $'s
+* MAX of Purchase $'s
+* MAX of LBS Total
 
-* NVD_RATE, NVD_RATE_BASIS_TYPE, INCOME_PROVISION, REBATE_ID
+The "Rebateable $'s" values are not duplicated in the split records, but the maximum value seems to be the correct one.
+
+Note:
 
 ```
-If NVD_RATE_BASIS_TYPE = SPD Then
-    BILLED_REBATE_AMT = NVD_RATE * REBATEABLE_PURCH_AMT
+If NVD_RATE_BASIS_TYPE = "SPD" Then
+    Billed $'s = NVD_RATE * Rebateable $'s
 
 If NVD_RATE_BASIS_TYPE = PKG Then
-    BILLED_REBATE_AMT = NVD_RATE * TOTAL_PKG_QUANTITY
+    Billed $'s = NVD_RATE * TOTAL_PKG_QUANTITY
 ```
 
+The "Product Detail (Clean)" and the partially aggregated (to resolve split records) "Billed NVD (Clean)" tables are then each aggregated by
+
+* Manufacturer ID
+* Member ID
+* Date
+* SKU
+
+All categorical fields are aggregated as "MAX" and all measure fields are aggregated as "SUM"
