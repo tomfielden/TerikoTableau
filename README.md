@@ -139,11 +139,11 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 | Manufacturer Parent       | PD : Manufacturer Parent  | PD : PARENT_MANUFACTURER_NAME  |   |
 | Member                    | PD : Member  | PD : COMPONENT  |   |
 | Member ID                 | PD : Member ID  | PD : GPO_MEMBER_ID  |   |
-| Pack Size                 | PD : Pack Size  | PD : Pack Size Orig  | Selected Pack Size for Man+SKU group  |
-| Pack Size Orig            | PD : Pack Size Orig  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK  | (formula)  |
+| Pack Size                 | PD : Pack Size  |   | Selected Pack Size for Man+SKU group  |
+| Pack Size (PD)            | PD : Pack Size  | PD : ITEM<BR>PD : ITEM_UOM<BR>PD : PACK  | (formula)  |
 | Product Description       | PD : Product Description  | PD : PRODUCT_DESCRIPTION  | Selected Product Description for Man+SKU group |
 | Product Description (NVD) | NVD : Product Description  | NVD : PRODUCT_DESCRIPTION  |   |
-| Product Master ID         | PD : Product Master ID  | PD : PRODUCT_MASTER_ID  |   |
+| Product Master ID         | PD : Product Master ID  | PD : PRODUCT_MASTER_ID  | convert integer to string  |
 | Profit Center ID          | PD : Profit Center ID  | PD : PC#  |   |
 | Profit Center ID (NVD)    | NVD : Profit Center ID  | NVD : PROFIT_CENTER_CD  |   |
 | Profit Center ZIP         | PD : Profit Center ZIP  | PD : PCZIP  |   |
@@ -368,33 +368,6 @@ Calculated Fields:
     * MAX of Co-Op Name
 
 
-* Inner Join on Manufacturer, #SKU
-    * MAX of Product Description    -> Unique PD
-    * MAX of Pack Size              -> Unique PS
-
-
-* Pack Size
-This formula makes more sense in context. It says; If the #SKU is empty, use the current/original Pack Size else use the one chose by the aggregation above (i.e. the unique one in the Manufacturer, #SKU group)
-
-```
-    IF ISNULL([#SKU]) or [#SKU] = "" THEN
-        [Pack Size Orig]
-    ELSE
-        [Unique PS]
-    END
-```
-
-    * Product Description
-    Same effect as for "Pack Size", we choose the aggregated value unless #SKU is null/empty in which case we stick with the original value,
-
-```
-    IF ISNULL([#SKU]) or [#SKU] = "" THEN
-        [PRODUCT_DESCRIPTION]
-    ELSE
-        [Unique PD]
-    END
-```
-
 ### Billed NVD (Clean) Forumlas
 
 Calculated Fields:
@@ -535,4 +508,39 @@ And we have the following Manufacturer mapping table
 | A. ZEREGA & SONS | A ZEREGA |
 | 3M | 3M |
 | A. ZEREGA & SONS | Happy Place |
+
+* Inner Join on Manufacturer, #SKU
+    * MAX of Product Description    -> Unique PD
+    * MAX of Pack Size              -> Unique PS
+
+
+* "Pack Size" and "Product Description"
+
+The steps to update the "Product Description" and "Pack Size" are,
+
+1. Aggregate: Group by (Manufacturer, SKU), MAX of "Product Description", MAX of "Pack Size"
+    * The new index field names will be "GROUP.Manufacturer", "GROUP.SKU"
+    * The new value field names will be "MAX.Product Description", "MAX.Pack Size"
+2. Left Join the aggregate table back to the main table on (Manufacturer, SKU)
+    * This means to keep exactly all the main table records (no new records, just new fields from the previous step)
+3. Replace "Product Description" with the formula,
+
+```
+    IF ISNULL([GROUP.SKU]) or [GROUP.SKU] = "" THEN
+        [Product Description (PD)]
+    ELSE
+        [MAX.Product Description]
+    END
+```
+
+4. Rename "Pack Size" to "Pack Size Orig"
+5. Create new "Pack Size" using formula,
+
+```
+    IF ISNULL([GROUP.SKU]) or [GROUP.SKU] = "" THEN
+        [Pack Size (PD)]
+    ELSE
+        [MAX.Pack Size]
+    END
+```
 
