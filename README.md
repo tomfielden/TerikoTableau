@@ -16,14 +16,13 @@ There are two Tableau Prep Builder workflows in the "Prep Flows" subdirectory. T
 
 The ".tfl" workflows must not be run directly. Instead, open it and export it to ".tflx" files and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the Excel file/workbook,
 
-* IPS_Product_Details.xls
+These are the three mapping files to convert and coalesce names from the related Tableau source fields
 
-The Excel workbook contains two sheets/tables,
+* Manufacturer.csv
+* Distributor.csv
+* Sector.csv
 
-* Manufacturers
-* Distributors
-
-These sheets/tables are used by the Prep Builder workflows. In general local data (such as Excel) is read dynamically by the ".tfl" workflows and then packaged into the ".tflx" workflows. The significance of these files will be explained in detail below.
+These files are used by the Prep Builder workflows. In general local data (such as CSV) is read dynamically by the ".tfl" workflows and then packaged into the ".tflx" workflows. The significance of these files will be explained in detail below.
 
 For historical and technical reference there is a "Prep Flows/Backup" subdirectory containing early versions of the main Prep Builder workflows.
 
@@ -37,7 +36,7 @@ There source tables for Prep Builder workflows are,
 * IPS_BILLED_NVD_DATA
 * Salesforce Account Extract
 
-As mentioned elsewhere, local Excel data is also used to construct the output tables. The output tables are all located in "Teriko's Projects" on the Tableau Server,
+As mentioned elsewhere, local CSV data is also used to construct the output tables. The output tables are all located in "Teriko's Projects" on the Tableau Server,
 
 * Product Detail (Clean)
 * Billed NVD (Clean)
@@ -76,8 +75,9 @@ Inputs,
 * server: default/IPS Product Detail
 * server: default/IPS_BILLED_NVD_DATA
 * server: Salesforce/Salesforce Accounts Extract
-* IPS_Product_Details.xls: Manufacturer
-* IPS_Product_Details.xls: Distributor
+* Manufacturer.csv
+* Distributor.csv
+* Sector.csv
 
 Outputs,
 
@@ -91,7 +91,7 @@ Purpose: To perform the join of Product Detail and Billed NVD and pick up only t
 Inputs,
 * server: Teriko's Projects/Product Detail (Clean)
 * server: Teriko's Projects/Billed NVD (Clean)
-* IPS_Product_Details.xls: Manufacturer 
+* Manufacturer.csv
 
 Output,
 * server: Teriko's Projects/Product Detail + NVD (Clean)
@@ -100,7 +100,7 @@ Output,
 ## Running Prep Builder Workflows
 
 ### Conditional Steps
-If you alter anything in the IPS_Product_Details.xls file (Manufacturer or Distributor mapping tables)
+If you alter anything in the .CSV files (Manufacturer, Distributor or Sector mapping tables)
 Then you will need to first,
 
 1. Open "Detail+NVD_Step-1.tfl"
@@ -108,7 +108,7 @@ Then you will need to first,
 2. Open "Detail+NVD_Step-2.tfl"
     * File -> Export to "Detail+NVD_Step-2.tflx" (default, replace existing)
 
-Else you can skip these steps. Their purpose is to pull in the local Excel mapping data into the Prep Builder package (.tflx) file(s).
+Else you can skip these steps. Their purpose is to pull in the local .CSV mapping data into the Prep Builder package (.tflx) file(s).
 
 ### Monthly Steps
 Note: Be sure the Tableau Prep Builder application is closed and not running. Eases a server login issue.
@@ -132,10 +132,10 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 | Date                      | PD : Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Distributor               | PD : Distributor  | PD : DISTRIBUTOR  | (formula)  |
 | Distributor House         | PD : Distributor House  | PD : DISTRIBUTOR |   |
+| Distributor #             | x |x|x|
 | Fiscal Date               | PD : Fiscal Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Manufacturer              | PD : Manufacturer  | PD : MFGR  | (formula)  |
 | Manufacturer (NVD)        | NVD : Manufacturer  | NVD : MANUFACTURER_NAME  | (formula)  |
-| Manufacturer ID           | PD : Manufacturer ID  | PD : MFGR_ID  |   |
 | Manufacturer Parent       | PD : Manufacturer Parent  | PD : PARENT_MANUFACTURER_NAME  |   |
 | Member                    | PD : Member  | PD : COMPONENT  |   |
 | Member ID                 | PD : Member ID  | PD : GPO_MEMBER_ID  |   |
