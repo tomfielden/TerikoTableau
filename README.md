@@ -135,6 +135,7 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 | Distributor #             | x |x|x|
 | Fiscal Date               | PD : Fiscal Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Manufacturer              | PD : Manufacturer  | PD : MFGR  | (formula)  |
+| Manufacturer.Orig         | PD : Manufacturer.Orig  | PD : MFGR  |   |
 | Manufacturer (NVD)        | NVD : Manufacturer  | NVD : MANUFACTURER_NAME  | (formula)  |
 | Manufacturer Parent       | PD : Manufacturer Parent  | PD : PARENT_MANUFACTURER_NAME  |   |
 | Member                    | PD : Member  | PD : COMPONENT  |   |
@@ -170,39 +171,81 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 ### Notes:
 
 * In the table above, categorical data is sorted at the top, measure data is sorted at the bottom as it appears in a Tableau Desktop worksheet.
-* (IPS Product Detail) ITEM is weight per item in some units stated in UNIT_UOM.
-* (IPS Product Detail) PACK is number of items in a package described by SOLD_BY, typically a case.
-* (IPS Product Detail) VOLUME is the number of packs sold in each row of the table.
-* The "Product Detail (Clean)" table is created by mixing in several other tables. The number of rows are the same as the main source table, "IPS Product Detail"
-* The "Billed NVD (clean)" table shares a least one mixin table. The number of rows is the same as the main source table, "IPS_BILLED_NVD_DATA"
-* The "Product Detail + NVD (Clean)" table is created by several aggregations and "left" joins the "Product Detail (Clean)" and "Billed NVD (clean)" tables. The direct result of aggregating tables is that the number of resulting rows is significantly less than the main "Product Detail (Clean)" table.
-* The "Product Detail (Clean)" table is indexed by the following fields,
-    * Manufacturer ID
-    * Member ID
-    * Date
-    * SKU
-    * CLIENT_ID
-* The "Billed NVD (Clean)" table is indexed by the following fields,
-    * Manufacturer ID
-    * Member ID
-    * DISTIBUTION_CENTER_ID
-    * Date
-    * Fiscal Date
-    * Rebate Invoice ID
-    * Aramark Product ID
-    * PKG_BASIS
-    * WT_BASIS
-    * NVD_RATE
-        * There are only 10 pairs of records where this matters and not for INCOME_PROVISION
-        * Recommendation: Drop it as index field
-    * Rebate ID
-        * This seems to be a split field
-        * There are 2216 pairs of records, mostly KENS and LA BREA, that index by Rebase ID.
-    * INCOME_PROVISION
-        * This seems to be a split field
-        * Fields (Cases, Purchase $'s, LBS Total) each are duplicated.
-        * Must do MAX of Rebateable $'s
-        * There are 764 pairs of records (Nearly all DART / SOLO CUP CPC) where records are not duplicated.
+
+
+#### IPS Product Detail Index Fields
+
+* MFGR
+* BRAND
+* DISTRIBUTOR
+* CLIENT_ID
+* PERIOD_YEAR
+* PERIOD_MONTH
+* MFGR#
+* DISTRIB#
+* PRODUCT_DESCRIPTION
+* ITEM_UOM**
+* SOLD_BY**
+
+Notes: 
+* ITEM is weight per item in some units stated in UNIT_UOM.
+* PACK is number of items in a package described by SOLD_BY, typically a case.
+* VOLUME is the number of packs sold in each row of the table.
+* **ITEM_UOM and SOLD_BY are only used in approximately 100 rows, may be a data entry error in the index fields, therefore these are not used in the workflow, but are mentioned above.
+* PC# is mapped 1:1 with GPO_MEMBER_ID and COMPONENT
+* COMPONENT is essentially the parent of CLIENT_NAME, IPS calls this the Location Level
+* GPO_MEMBER_ID is 1:many with CLIENT_ID
+* CLIENT_NAME is the name for the CLIENT_ID, yet is often NULL
+* (MFGR#, DISTRIB#, PRODUCT_DESCRIPTION) collectively identify a unique SKU
+* (MFGR, BRAND) identify a unique Brand
+
+#### Product Detail (Clean) Index Fields
+
+* ???? fill this in once open prep builder
+* Manufacturer ID
+* Member ID
+* Date
+* SKU
+* CLIENT_ID
+
+Notes: 
+* The number of rows should be almost identical to IPS Product Detail
+
+#### Billed NVD (Clean) Index Fields
+
+* Manufacturer ID
+* Member ID
+* DISTIBUTION_CENTER_ID
+* Date
+* Fiscal Date
+* Rebate Invoice ID
+* Aramark Product ID
+* PKG_BASIS
+* WT_BASIS
+* NVD_RATE
+  * There are only 10 pairs of records where this matters and not for INCOME_PROVISION
+  * Recommendation: Drop it as index field
+* Rebate ID
+  * This seems to be a split field
+  * There are 2216 pairs of records, mostly KENS and LA BREA, that index by Rebase ID.
+* INCOME_PROVISION
+  * This seems to be a split field
+  * Fields (Cases, Purchase $'s, LBS Total) each are duplicated.
+  * Must do MAX of Rebateable $'s
+  * There are 764 pairs of records (Nearly all DART / SOLO CUP CPC) where records are not duplicated.
+
+Notes:
+* The "Billed NVD (clean)" table shares a least one mapping table. The number of rows is the same as the main source table, "IPS_BILLED_NVD_DATA"
+
+
+#### Product Detail + NVD (Clean) Index Fields
+
+* TBD
+*
+*
+
+Notes:
+* This table is created by several aggregations and "left" joins the "Product Detail (Clean)" and "Billed NVD (clean)" tables. The direct result of aggregating tables is that the number of resulting rows is significantly less than the main "Product Detail (Clean)" table.
 
 
 ### Mapping .CSV Files
