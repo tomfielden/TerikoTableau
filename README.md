@@ -135,7 +135,7 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
 | Distributor #             | x |x|x|
 | Fiscal Date               | PD : Fiscal Date  | PD : PERIOD_MONTH<BR>PD : PERIOD_YEAR  | (formula)  |
 | Manufacturer              | PD : Manufacturer  | PD : MFGR  | (formula)  |
-| Manufacturer.Orig         | PD : Manufacturer.Orig  | PD : MFGR  |   |
+| Manufacturer (PD)         | PD : Manufacturer (PD)  | PD : MFGR  |   |
 | Manufacturer (NVD)        | NVD : Manufacturer  | NVD : MANUFACTURER_NAME  | (formula)  |
 | Manufacturer Parent       | PD : Manufacturer Parent  | PD : PARENT_MANUFACTURER_NAME  |   |
 | Member                    | PD : Member  | PD : COMPONENT  |   |
