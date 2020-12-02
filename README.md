@@ -14,7 +14,7 @@ There are two Tableau Prep Builder workflows in the "Prep Flows" subdirectory. T
 * Detail+NVD_Step-1.tfl
 * Detail+NVD_Step-2.tfl
 
-The ".tfl" workflows must not be run directly. Instead, open it and export it to ".tflx" files and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the Excel file/workbook,
+The ".tfl" workflows must not be run directly. Instead, open it and export it to ".tflx" files and run that instead. What happening is that the ".tfl" file needs to pick up and "package" some local data found in the .CSV files,
 
 These are the three mapping files to convert and coalesce names from the related Tableau source fields
 
@@ -205,13 +205,13 @@ Note: Be sure the Tableau Prep Builder application is closed and not running. Ea
         * There are 764 pairs of records (Nearly all DART / SOLO CUP CPC) where records are not duplicated.
 
 
-### Excel IPS_Product_Details.xls
+### Mapping .CSV Files
 
-There are two mapping tables in the associated Excel workbook,
+There are three mapping tables,
 
-* Manufacturers
+* Manufacturer.csv
 
-The Manufacturer sheet/table contains two fields,
+This contains two fields,
 
     * Old
     * New
@@ -219,9 +219,9 @@ The Manufacturer sheet/table contains two fields,
 The "Old" field is intended to join with the "IPS Product Detail" MFGR/Manufacturer field.
 The "New" field either contains a name that is intended to substituted for an existing name (this is an opportunity to group names together into a common name) or left blank. In the left blank case, a formula in the workflow will fill in a computed value in place of the original name, originally this was BRAND or, if null, MFGR_ID.
 
-* Distributors
+* Distributor.csv
 
-The Distributor sheet/table contains two fields
+This contains two fields,
 
     * Old
     * New
@@ -229,6 +229,15 @@ The Distributor sheet/table contains two fields
 The "Old" field is intended to join with the "IPS Product Detail" DISTRIBUTOR/"Distributor House" field
 The "New" field contains substitute names for the given distributor. Please see the actual formula for specifics.
 
+* Sector.csv
+
+This contains two fields,
+
+    * Old
+    * New
+
+The "Old" field is intended to join with the "IPS Product Detail"SECTOR" field
+The "New" field contains simplified substitute names for the given Sector.  Please see the actual formula for specifics.
 
 ### Product Detail (Clean) Formulas
 
@@ -284,18 +293,14 @@ Calculated Fields:
 ```
 
 * Manufacturer
-    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
+    Join "Manufacturer" to Manufacturer.csv to pick up new names or compute missing names (detailed in .CSV)
 
 ```
     IF ISNULL([Old]) THEN
         [Manufacturer]
     ELSEIF ISNULL([New]) THEN
         IF ISNULL([BRAND]) THEN
-            IF ISNULL([MFGR_ID]) THEN
-                [Manufacturer]
-            ELSE
-                [MFGR_ID]
-            END
+            [Manufacturer]
         ELSE
             [BRAND]
         END
@@ -303,7 +308,7 @@ Calculated Fields:
         [New]
     END
 ```
-    Notice that when Excel.Manufacturer.New is left empty, the BRAND or, if null, the MFGR_ID value will be substituted for the Manufacturer.
+    Notice that when Manufacturer.New is left empty, the BRAND or, if null, the MFGR_ID value will be substituted for the Manufacturer.
 
 * Date
 
@@ -348,7 +353,7 @@ Calculated Fields:
 ```
 
 * Distributor
-    Join "DISTRIBUTOR" to Excel.Distributor.Old to pick up new names (detailed in Excel)
+    Join "DISTRIBUTOR" to Distributor.Old to pick up new names (detailed in .CSV)
 
 ```
     IF ISNULL([Old]) THEN
@@ -373,18 +378,14 @@ Calculated Fields:
 Calculated Fields:
 
 * Manufacturer
-    Join "Manufacturer" to Excel.Manufacturer.Old to pick up new names or compute missing names (detailed in Excel)
+    Join "Manufacturer" to Manufacturer.Old to pick up new names or compute missing names (detailed in .CSV)
 
 ```
     IF ISNULL([Old]) THEN
         [MANUFACTURER_NAME]
     ELSEIF ISNULL([New]) THEN
         IF ISNULL([BRAND_NAME]) THEN
-            IF ISNULL([MFGR_ID]) THEN
-                [MANUFACTURER_NAME]
-            ELSE
-                [MFGR_ID]
-            END
+            [MANUFACTURER_NAME]
         ELSE
             [BRAND_NAME]
         END
